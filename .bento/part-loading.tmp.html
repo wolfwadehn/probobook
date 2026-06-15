@@ -1,0 +1,925 @@
+<div id="toc" class="toc">
+<div id="toctitle">Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_functional_view">1. Functional View</a>
+<ul class="sectlevel2">
+<li><a href="#_phase_1_application_bootstrap">1.1. Phase 1 — Application Bootstrap</a></li>
+<li><a href="#_phase_2_window_and_opengl_surface_creation">1.2. Phase 2 — Window and OpenGL Surface Creation</a></li>
+<li><a href="#_phase_3_scene_initialisation_onluxready">1.3. Phase 3 — Scene Initialisation (<code>OnLuxReady</code>)</a></li>
+<li><a href="#_phase_4_robot_scene_construction_new_robotscene">1.4. Phase 4 — Robot Scene Construction (<code>new RobotScene()</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_4a_mechanism_loading">1.4.1. 4a. Mechanism Loading</a></li>
+<li><a href="#_4b_node_lookup">1.4.2. 4b. Node Lookup</a></li>
+<li><a href="#_4c_joint_limits">1.4.3. 4c. Joint Limits</a></li>
+<li><a href="#_4d_ik_solver_construction">1.4.4. 4d. IK Solver Construction</a></li>
+<li><a href="#_4e_obstacle_box">1.4.5. 4e. Obstacle Box</a></li>
+<li><a href="#_4f_link_obb_trees">1.4.6. 4f. Link OBB Trees</a></li>
+<li><a href="#_4g_gripper_transform_node">1.4.7. 4g. Gripper Transform Node</a></li>
+<li><a href="#_4h_home_pose_and_first_ik">1.4.8. 4h. Home Pose and First IK</a></li>
+<li><a href="#_4i_script_timer">1.4.9. 4i. Script Timer</a></li>
+<li><a href="#_4j_overlay_visual_nodes">1.4.10. 4j. Overlay Visual Nodes</a></li>
+<li><a href="#_4k_scene_graph_assembly">1.4.11. 4k. Scene Graph Assembly</a></li>
+</ul>
+</li>
+<li><a href="#_phase_5_ui_population_createui">1.5. Phase 5 — UI Population (<code>CreateUI</code>)</a></li>
+<li><a href="#_phase_6_steady_state_operation">1.6. Phase 6 — Steady-State Operation</a></li>
+</ul>
+</li>
+<li><a href="#_line_by_line_trace">2. Line-by-Line Trace</a>
+<ul class="sectlevel2">
+<li><a href="#_app_xaml_cs_application_startup">2.1. <code>App.xaml.cs</code> — Application Startup</a></li>
+<li><a href="#_mainwindow_xaml_cs_window_construction">2.2. <code>MainWindow.xaml.cs</code> — Window Construction</a></li>
+<li><a href="#_mainwindow_xaml_cs_onluxready">2.3. <code>MainWindow.xaml.cs</code> — <code>OnLuxReady</code></a></li>
+<li><a href="#_robotscene_cs_constructor_line_by_line">2.4. <code>RobotScene.cs</code> — Constructor, line by line</a></li>
+<li><a href="#_robotscene_cs_computeik_first_call">2.5. <code>RobotScene.cs</code> — <code>ComputeIK()</code> (first call)</a></li>
+<li><a href="#_robotscene_cs_checkcollisions_called_from_computeik">2.6. <code>RobotScene.cs</code> — <code>CheckCollisions()</code> (called from ComputeIK)</a></li>
+<li><a href="#_first_rendered_frame">2.7. First Rendered Frame</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This document traces the full lifecycle of loading and initialising the robot model — from the moment the WPF window opens to the first rendered frame.  Two views are provided: a functional (conceptual) view and a line-by-line trace through the source.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_functional_view">1. Functional View</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_phase_1_application_bootstrap">1.1. Phase 1 — Application Bootstrap</h3>
+<div class="paragraph">
+<p>The operating system hands control to <code>PRobot.exe</code>.  The .NET 10 apphost locates the Desktop runtime, loads <code>PRobot.dll</code>, and calls the WPF entry point.  WPF constructs the <code>App</code> object (from <code>App.xaml</code> / <code>App.xaml.cs</code>), which immediately:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>locks the decimal separator to <code>.</code> on every thread (InvariantCulture), and</p>
+</li>
+<li>
+<p>registers global exception handlers so that any crash shows a dialog rather than a silent process exit.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>WPF then instantiates <code>MainWindow</code> as directed by <code>App.xaml&#8217;s `StartupUri</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_phase_2_window_and_opengl_surface_creation">1.2. Phase 2 — Window and OpenGL Surface Creation</h3>
+<div class="paragraph">
+<p><code>MainWindow()</code> does three things in sequence:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong><code>Lib.Init()</code></strong> — the Nori framework discovers all loaded assemblies, registers VNode factories, initialises observable streams, and prepares the resource loader (the <code>nori:</code> virtual URI scheme).  No GPU work yet.</p>
+</li>
+<li>
+<p><strong><code>InitializeComponent()</code></strong> — WPF reads <code>MainWindow.xaml</code> and builds the visual tree: the header bar, the empty <code>Border</code> named <code>mContent</code> (future viewport), and the <code>ScrollViewer</code> + <code>StackPanel</code> (<code>mSettings</code>) on the right.</p>
+</li>
+<li>
+<p><strong><code>WPFHost.Init(this, OnLuxReady)</code></strong> — Nori creates an OpenGL-capable Win32 surface via GLFW, wraps it in a WPF <code>UIElement</code>, and stores the <code>OnLuxReady</code> callback.  The <code>UIElement</code> is returned and assigned to <code>mContent.Child</code>, embedding the GL surface inside the WPF layout.  The OpenGL context is created on a dedicated render thread.  <code>OnLuxReady</code> fires once that thread has a live context and has rendered the first (empty) frame.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_phase_3_scene_initialisation_onluxready">1.3. Phase 3 — Scene Initialisation (<code>OnLuxReady</code>)</h3>
+<div class="paragraph">
+<p>On the first successful GL frame, the Nori render thread posts <code>OnLuxReady</code> back to the WPF dispatcher:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>TraceVN.TextColor = Color4.Yellow</code> — debug overlay will print in yellow.</p>
+</li>
+<li>
+<p><code>new SceneManipulator()</code> — installs the built-in 3D mouse handler (orbit, pan, zoom).</p>
+</li>
+<li>
+<p><code>new RobotScene()</code> — the main loading sequence (Phase 4 below).</p>
+</li>
+<li>
+<p><code>Lux.UIScene = scene</code> — the render loop now draws this scene every vsync.</p>
+</li>
+<li>
+<p><code>Dispatcher.BeginInvoke(CreateUI)</code> — UI construction is deferred one layout pass so that the panel column has its final width before sliders are sized.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_phase_4_robot_scene_construction_new_robotscene">1.4. Phase 4 — Robot Scene Construction (<code>new RobotScene()</code>)</h3>
+<div class="paragraph">
+<p>This is where the robot part is actually loaded.</p>
+</div>
+<div class="sect3">
+<h4 id="_4a_mechanism_loading">1.4.1. 4a. Mechanism Loading</h4>
+<div class="paragraph">
+<p><code>Mechanism.Load("N:/Wad/FanucX/mechanism.curl")</code> reads the CURL file from the N:\ drive.  The file encodes a complete kinematic tree:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Root (FanucX)
+  └─ Base  (rigid link, no joint)
+       └─ S  (Rotate, Z-axis, ±185°)
+            └─ L  (Rotate, Y-axis, -180° … +25°)
+                 └─ U  (Rotate, Y-axis, -225° … +70°)
+                      └─ R  (Rotate, X-axis, ±365°)
+                           └─ B  (Rotate, Y-axis, ±120°)
+                                └─ T  (Rotate, Z-axis, ±365°)
+                                     └─ Tip  (rigid end-effector)</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Each node contains:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>its name, colour, and socket position (where it attaches to its parent),</p>
+</li>
+<li>
+<p>a path to a visual mesh file (e.g., a <code>.msh</code> model of the physical link casting),</p>
+</li>
+<li>
+<p>optionally a separate collision mesh path (lower polygon count),</p>
+</li>
+<li>
+<p>joint type (<code>EJoint.Rotate</code>), rotation axis, and angular limits (<code>JMin</code>, <code>JMax</code>).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>Mechanism.Load</code> parses all of this, loads the referenced mesh files from disk, and returns the root <code>Mechanism</code> node with the entire kinematic tree populated.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_4b_node_lookup">1.4.2. 4b. Node Lookup</h4>
+<div class="paragraph">
+<p>After the tree is in memory, two named descendants are retrieved:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Tip</code> — the end-effector node.  Its <code>Xfm</code> property always holds the current world-space TCP transform after any joint change.</p>
+</li>
+<li>
+<p>The six joint nodes <code>S, L, U, R, B, T</code> — accessed as an array <code>mJoints[0..5]</code> built from <code>"SLURBT".Select(a &#8658; mMech.FindChild(a.ToString())!)</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_4c_joint_limits">1.4.3. 4c. Joint Limits</h4>
+<div class="paragraph">
+<p>The per-joint limits <code>JMin</code> and <code>JMax</code> are copied into <code>mMin[]</code> and <code>mMax[]</code>.  These plain arrays are passed to <code>RBRSolver</code> so the solver can flag which of its eight algebraic branches fall within the physical travel range.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_4d_ik_solver_construction">1.4.4. 4d. IK Solver Construction</h4>
+<div class="paragraph">
+<p><code>new RBRSolver(150, 770, 0, 0, 1016, 175, mMin, mMax)</code> creates the closed-form solver.  The six numeric parameters are the Denavit-Hartenberg link lengths and offsets of the FANUC X arm:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter</th>
+<th class="tableblock halign-left valign-top">Value (mm)</th>
+<th class="tableblock halign-left valign-top">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>a12</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">150</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Lateral offset between joint 1 (S) and joint 2 (L)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>a23</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">770</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Length of the lower arm (L to U)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>a34</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Offset at the elbow</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>s2</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shoulder lateral offset</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>s4</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1016</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Length of the upper arm (U to wrist centre)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>s6</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">175</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Distance from wrist centre to TCP</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_4e_obstacle_box">1.4.5. 4e. Obstacle Box</h4>
+<div class="paragraph">
+<p>The 200 × 200 × 200 mm box is built entirely in code:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>Poly.Rectangle(-100, -100, 100, 100)</code> — a 2D square centred at the origin.</p>
+</li>
+<li>
+<p><code>Mesh3.Extrude([boxPoly], 200, Matrix3.Translation(0, 0, -100), ETess.Medium)</code> — extrudes the square 200 mm, offset by −100 mm on Z so the box is centred at its local origin.</p>
+</li>
+<li>
+<p><code>OBBTree.From(mBoxMesh)</code> — builds the collision hierarchy for the box.</p>
+</li>
+<li>
+<p><code>new Mesh3VN(mBoxMesh) { Mode = EShadeMode.Glass, Color = Color4.Blue }</code> — the visual node.</p>
+</li>
+<li>
+<p><code>new XfmVN(BoxWorldXfm, mBoxVN)</code> — wraps the visual node in a transform node; the transform is updated whenever the obstacle sliders change.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_4f_link_obb_trees">1.4.6. 4f. Link OBB Trees</h4>
+<div class="paragraph">
+<p>Every node in the mechanism tree is inspected:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">foreach (var m in mMech.EnumTree()) {
+    var cm = m.CMesh;
+    if (cm != null)         mLinkOBBs[m] = OBBTree.From(cm);
+    else if (m.Mesh != null) mLinkOBBs[m] = OBBTree.From(m.Mesh);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Priority: collision mesh (<code>CMesh</code>) over visual mesh (<code>Mesh</code>).  Nodes with neither mesh (e.g., the <code>Tip</code> end-effector or pure axis joints) are skipped.  The resulting dictionary <code>mLinkOBBs</code> maps each <code>Mechanism</code> node to its OBB tree, all in local (link) space.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_4g_gripper_transform_node">1.4.7. 4g. Gripper Transform Node</h4>
+<div class="paragraph">
+<p><code>new XfmVN(Matrix3.Identity, new GroupVN([]))</code> — a placeholder transform node whose <code>Xfm</code> is updated to <code>mTip.Xfm</code> every frame after FK/IK computation, effectively making it track the TCP.  An empty <code>GroupVN</code> child is used because no gripper geometry is loaded in the demo.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_4h_home_pose_and_first_ik">1.4.8. 4h. Home Pose and First IK</h4>
+<div class="paragraph">
+<p><code>mCS = mHome</code> sets the initial target coordinate system to the robot&#8217;s home pose.  <code>ComputeIK()</code> is called immediately, ensuring the solver runs once before the UI appears so <code>mJoints</code> have correct values.</p>
+</div>
+<div class="paragraph">
+<p>The home coordinate system is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">readonly CoordSystem mHome = new(
+    new(1166, 0, 1161 - 565),   // origin at (1166, 0, 596) mm in world space
+    Vector3.XAxis,               // X axis of the home frame = world X
+    Vector3.YAxis                // Y axis of the home frame = world Y
+);</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_4i_script_timer">1.4.9. 4i. Script Timer</h4>
+<div class="paragraph">
+<p><code>new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) }</code> — creates a WPF timer (runs on the UI thread) for stepping through waypoints.  The <code>Tick</code> handler calls <code>TickScript()</code>.  The timer is disabled at this point.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_4j_overlay_visual_nodes">1.4.10. 4j. Overlay Visual Nodes</h4>
+<div class="paragraph">
+<p><code>new InfoVN(this)</code> and <code>new TcpVN(this)</code> — the two streaming VNodes that render text and TCP axes every frame.  Both are created with a reference to <code>RobotScene</code> so they can read current pose data.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_4k_scene_graph_assembly">1.4.11. 4k. Scene Graph Assembly</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">BgrdColor = Color4.Gray(64);          // dark grey background
+Bound = new Bound3(-1200,-1200,0, 1200,1200,1500);  // camera auto-fit region
+Root = new GroupVN([
+    new MechanismVN(mMech),  // full robot arm
+    mGripper,                // TCP-tracking transform
+    mBoxXfm,                 // obstacle box
+    mTcpVN,                  // TCP axes overlay
+    mInfoVN,                 // text overlay
+    TraceVN.It               // debug print overlay
+]);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After this line, the Lux render loop has a complete, valid scene graph.  The next vsync produces the first rendered frame showing the robot in its home pose.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_phase_5_ui_population_createui">1.5. Phase 5 — UI Population (<code>CreateUI</code>)</h3>
+<div class="paragraph">
+<p>One WPF layout tick after <code>OnLuxReady</code>, <code>Dispatcher.BeginInvoke</code> fires and calls <code>scene.CreateUI(mSettings.Children)</code>.  This iterates <code>mMech.EnumTree()</code> again and builds one WPF <code>Slider</code> per joint.  The FK sliders read their initial value from the joint&#8217;s current <code>JValue</code> (set by Phase 4h).</p>
+</div>
+<div class="paragraph">
+<p>The IK sliders are initialised from <code>mX/mY/mZ/mRx/mRy/mRz</code>, which are <code>0.0</code> except <code>mRx</code> (set to −90 inside <code>AddSlider</code> as a special case to match the initial tool-up orientation).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_phase_6_steady_state_operation">1.6. Phase 6 — Steady-State Operation</h3>
+<div class="paragraph">
+<p>From this point the application is event-driven:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Slider moved</strong> → FK or IK callback → kinematic update → <code>CheckCollisions()</code> → Lux redraws on next vsync.</p>
+</li>
+<li>
+<p><strong>Viewport click</strong> → <code>Lux</code> pick system → <code>Picked(obj)</code> → <code>SnapToFace</code> if box was clicked.</p>
+</li>
+<li>
+<p><strong>Load + Play</strong> → <code>LoadScript(path)</code> populates <code>mScript</code> → <code>TogglePlay()</code> starts the timer → <code>TickScript()</code> advances waypoints every 500 ms.</p>
+</li>
+</ul>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_line_by_line_trace">2. Line-by-Line Trace</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section walks through every relevant source line in execution order, with the source location and a brief explanation of each statement&#8217;s effect.</p>
+</div>
+<div class="sect2">
+<h3 id="_app_xaml_cs_application_startup">2.1. <code>App.xaml.cs</code> — Application Startup</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">// L15
+Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Forces the main thread to use <code>.</code> as the decimal separator.  Critical for <code>double.Parse</code> in script loading.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">// L16
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Propagates the same culture to all threads spawned from this point.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">// L17
+AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Catch-all for non-dispatcher thread exceptions.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">// L18
+DispatcherUnhandledException += OnUnhandledException;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Catch-all for the WPF message loop.</p>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_mainwindow_xaml_cs_window_construction">2.2. <code>MainWindow.xaml.cs</code> — Window Construction</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">// L13
+Lib.Init();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><em>Entry point into the Nori framework.</em>  Scans loaded assemblies, registers VNode factories (so <code>VNode.MakeFor</code> can create the right VNode subclass for any domain type), initialises observable streams used by the reactive pattern, and sets up the <code>nori:</code> URI resolver.  Must be the first Nori call.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">// L14 (first call)
+InitializeComponent();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Standard WPF: parses <code>MainWindow.xaml</code>, constructs the full visual tree including <code>mContent</code> (Border) and <code>mSettings</code> (StackPanel).  After this line, the WPF layout is valid but not yet displayed.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">// L14 (second call)
+mContent.Child = WPFHost.Init(this, OnLuxReady);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>WPFHost.Init</code> creates a GLFW window attached as a child of the WPF window, creates an OpenGL 4.x core context on a dedicated thread, and returns a WPF <code>HwndHost</code> (or equivalent) that occupies <code>mContent</code>.  The returned element is immediately parented.  <code>OnLuxReady</code> is stored as a callback; it will fire from the render thread once the first GL frame completes, marshalled back to the WPF dispatcher.</p>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_mainwindow_xaml_cs_onluxready">2.3. <code>MainWindow.xaml.cs</code> — <code>OnLuxReady</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">// L19
+TraceVN.TextColor = Color4.Yellow;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Configures the debug overlay colour before any <code>Lib.Trace</code> calls might occur during scene init.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">// L20
+new SceneManipulator();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Installs the built-in Nori 3D mouse handler.  Subscribes to mouse events from <code>Hub.Mouse</code> and translates drag gestures into camera transforms on <code>Lux.UIScene</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">// L21
+var scene = new RobotScene();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><em>Triggers the full part-loading sequence.</em> See the <code>RobotScene()</code> walkthrough below.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">// L22
+Lux.UIScene = scene;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Sets the active scene.  The Lux render loop immediately begins drawing <code>scene</code> on every vsync.  At this point the robot arm is visible (home pose, no collision).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">// L24
+Dispatcher.BeginInvoke(() =&gt; scene.CreateUI(mSettings.Children));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Defers UI population.  <code>BeginInvoke</code> queues the lambda at <code>DispatcherPriority.Normal</code>, which runs after the current layout pass finishes.  This ensures <code>mSettings</code> has been measured and arranged by the time sliders are added.</p>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_robotscene_cs_constructor_line_by_line">2.4. <code>RobotScene.cs</code> — Constructor, line by line</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">public RobotScene() {</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Begins construction.  No base-class arguments needed; <code>Scene3</code> has a default constructor.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    mMech = Mechanism.Load("N:/Wad/FanucX/mechanism.curl");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>The central part-loading call.</strong>  <code>Mechanism.Load</code>:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Opens the <code>.curl</code> file from the <code>N:\</code> drive.</p>
+</li>
+<li>
+<p>Parses the tree structure, reading each node&#8217;s name, joint type, limits, mesh references, and socket position.</p>
+</li>
+<li>
+<p>For each node that has a mesh path, loads the mesh file (likely <code>.msh</code> binary format) from disk, constructing a <code>Mesh3</code> with <code>Node[]</code> (position + normal) and triangle indices.</p>
+</li>
+<li>
+<p>Returns the root <code>Mechanism</code> — the entire robot arm tree in memory, meshes and all.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>If the file or any referenced mesh is missing, an exception propagates to the global handler.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    mTip = mMech.FindChild("Tip")!;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Recursive search for the <code>"Tip"</code> child.  <code>Tip</code> is the end-effector node at the bottom of the chain.  <code>!</code> asserts non-null (the mechanism file is known to contain this node).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    mJoints = [.. "SLURBT".Select(a =&gt; mMech.FindChild(a.ToString())!)];</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>LINQ over the six characters <code>S</code>, <code>L</code>, <code>U</code>, <code>R</code>, <code>B</code>, <code>T</code>.  Each <code>FindChild</code> call traverses the tree looking for a node with that single-character name.  The result is collected into a <code>Mechanism[]</code> array using the C# 12 collection expression spread (<code>[..]</code>).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    for (int i = 0; i &lt; 6; i++) {
+        var m = mJoints[i];
+        mMin[i] = m.JMin;
+        mMax[i] = m.JMax;
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Copies the physical joint limits into plain double arrays.  <code>JMin</code>/<code>JMax</code> come directly from the CURL file (e.g., S: −185° … +185°).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    mSolver = new(150, 770, 0, 0, 1016, 175, mMin, mMax);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Constructs the closed-form IK solver.  The six numeric parameters encode the FANUC X DH parameters.  The solver stores the limits to classify solutions as <code>OK</code> or not.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    Lib.Tessellate = FastTess2D.Process;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Registers the 2D polygon tessellator.  Without this, <code>Mesh3.Extrude</code> would have no way to triangulate the cross-section contour.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    var boxPoly = Poly.Rectangle(-100, -100, 100, 100);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Creates a 200 × 200 mm 2D closed rectangle, centred at the origin.  This is the cross-section of the obstacle box.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    mBoxMesh = Mesh3.Extrude([boxPoly], 200, Matrix3.Translation(0, 0, -100), ETess.Medium);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Extrudes the rectangle:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Height = 200 mm.</p>
+</li>
+<li>
+<p><code>Matrix3.Translation(0, 0, -100)</code> shifts the base plane down 100 mm so the box is centred at Z = 0.</p>
+</li>
+<li>
+<p><code>ETess.Medium</code> controls arc tessellation tolerance (no arcs here, so it primarily affects the triangle count of the flat caps).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Result: a closed box mesh with six faces, centred at its local origin.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    mBoxOBB = OBBTree.From(mBoxMesh);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Builds an OBB tree from the box triangles.  For a simple box this is trivial — likely one or two levels.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    mBoxVN = new Mesh3VN(mBoxMesh) { Mode = EShadeMode.Glass, Color = Color4.Blue };</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Creates a visual node for the box.  <code>Glass</code> mode = semi-transparent.  Initial colour blue (no collision).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    mBoxXfm = new XfmVN(BoxWorldXfm, mBoxVN);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Wraps the box visual node in a transform node.  <code>BoxWorldXfm</code> is a property that returns <code>Matrix3.Translation(mBX, mBY, mBZ)</code>.  Initial position: <code>(700, 0, 700)</code> mm.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    foreach (var m in mMech.EnumTree()) {
+        var cm = m.CMesh;
+        if (cm != null)           mLinkOBBs[m] = OBBTree.From(cm);
+        else if (m.Mesh != null)  mLinkOBBs[m] = OBBTree.From(m.Mesh);
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Iterates every node in the kinematic tree.  For each node that has geometry, builds an OBB tree in the node&#8217;s local space.  This happens once at startup; the world-space transform is applied lazily in <code>CheckCollisions()</code> via <code>OBBTree.With(m.Xfm)</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    mGripper = new XfmVN(Matrix3.Identity, new GroupVN([]));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A transform node with an empty child group.  Acts as a TCP-following marker in the scene graph.  <code>mGripper.Xfm</code> is set to <code>mTip.Xfm</code> after every FK/IK update.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    mCS = mHome; ComputeIK();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Two statements on one line:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>mCS = mHome</code> — sets the target coordinate system to the home pose.</p>
+</li>
+<li>
+<p><code>ComputeIK()</code> — runs the full IK pipeline (solver, joint angles, collision check) before the first frame.  This ensures the robot is in a physically consistent state from the very first draw.</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    mPlayTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+    mPlayTimer.Tick += (_, _) =&gt; TickScript();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Creates the script step timer.  <code>DispatcherTimer</code> fires on the WPF dispatcher thread, so <code>TickScript</code> can safely modify UI-related state.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    mInfoVN = new InfoVN(this);
+    mTcpVN  = new TcpVN(this);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Creates the two streaming overlay nodes.  Both receive a reference to <code>this</code> so they can read live data via <code>InfoData</code> and <code>Tip.Xfm</code> each frame.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    Lib.Tracer  = TraceVN.Print;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Routes all <code>Lib.Trace(…)</code> calls to the viewport overlay, where they appear as yellow text lines.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    BgrdColor   = Color4.Gray(64);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Sets the OpenGL clear colour to dark grey (value 64 out of 255).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    Bound       = new Bound3(-1200, -1200, 0, 1200, 1200, 1500);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Defines the bounding box of the scene in world space.  Used by <code>ZoomExtents()</code> and the initial camera fit.  The robot&#8217;s full workspace is roughly within this 2.4 m × 2.4 m × 1.5 m volume.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    Root = new GroupVN([
+        new MechanismVN(mMech),
+        mGripper,
+        mBoxXfm,
+        mTcpVN,
+        mInfoVN,
+        TraceVN.It
+    ]);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>The scene graph is now complete.</strong>  Each element:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>MechanismVN(mMech)</code> — renders the full robot.  It internally traverses <code>mMech.EnumTree()</code>, creates sub-VNodes per link, and uses <code>m.Xfm</code> for positioning.  It also reads <code>m.IsColliding</code> to tint colliding links.</p>
+</li>
+<li>
+<p><code>mGripper</code> — TCP-tracking transform; currently invisible (empty group child).</p>
+</li>
+<li>
+<p><code>mBoxXfm</code> — obstacle box with its position transform.</p>
+</li>
+<li>
+<p><code>mTcpVN</code> — TCP coordinate frame arrows.</p>
+</li>
+<li>
+<p><code>mInfoVN</code> — text overlay.</p>
+</li>
+<li>
+<p><code>TraceVN.It</code> — debug trace output.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Setting <code>Root</code> completes the <code>Scene3</code> setup.  The Lux render loop, which began running when <code>Lux.UIScene = scene</code> was set, now has a non-null root and will traverse this graph on every vsync.</p>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_robotscene_cs_computeik_first_call">2.5. <code>RobotScene.cs</code> — <code>ComputeIK()</code> (first call)</h3>
+<div class="paragraph">
+<p>This is the initial IK run, invoked from the constructor with <code>mX = mY = mZ = 0</code> and <code>mRx = mRy = mRz = 0</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">void ComputeIK() {
+    mComputingIK = true;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Guards against re-entrant calls from the stance <code>ListBox.SelectionChanged</code> handler.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    var cs = CoordSystem.World;
+    cs *= Matrix3.Rotation(EAxis.X, mRx.D2R());
+    cs *= Matrix3.Rotation(EAxis.Y, mRy.D2R());
+    cs *= Matrix3.Rotation(EAxis.Z, mRz.D2R());</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Builds a coordinate system by successively applying Euler rotations.  <code>D2R()</code> is an extension method converting degrees to radians.  On the first call all angles are 0, so <code>cs</code> equals the world identity frame.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    var tcp = (Vector3)(mHome.Org + new Vector3(mX, mY, mZ));
+    mCS = cs * Matrix3.Translation(tcp + cs.VecZ * 50);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Computes the TCP world position as <code>home + offset</code>.  Adds 50 mm along the approach axis (<code>cs.VecZ</code>) to account for tool length.  On the first call: <code>tcp = (1166, 0, 596)</code>, offset = 50 mm in world Z.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    mStances.Items.Clear();
+    mSolver.ComputeStances(mCS.Org, mCS.VecZ, mCS.VecX);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Clears the ListBox items, then runs the IK solver.  The solver fills <code>mSolver.Solutions[0..7]</code> with all eight algebraic solution branches.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    for (int j = 0; j &lt; 8; j++) {
+        var a = mSolver.Solutions[j];
+        mStances.Items.Add(a.OK ? $"Stance {j + 1}" : "----");
+        if (j == mSelStance)
+            for (int i = 0; i &lt; 6; i++)
+                mJoints[i].JValue = a.GetJointAngle(i);
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For each of the eight solutions:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Adds <code>"Stance N"</code> or <code>"----"</code> to the ListBox.</p>
+</li>
+<li>
+<p>For the selected stance (<code>mSelStance = 0</code> initially): writes each joint angle into <code>mJoints[i].JValue</code>.  Setting <code>JValue</code> on a <code>Mechanism</code> node immediately recomputes its and all descendant world transforms, so after this loop <code>mTip.Xfm</code> is already updated.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    mGripper.Xfm = mTip.Xfm;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Moves the gripper transform node to the TCP position.  On the first call this is effectively a no-op (identity pose), but it must be kept in sync.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    CheckCollisions();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Tests all link OBBs against the box OBB.  On the first call, the robot is at home and the box at <code>(700, 0, 700)</code>, so no collision is expected.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    mComputingIK = false;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Clears the re-entrant guard.</p>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_robotscene_cs_checkcollisions_called_from_computeik">2.6. <code>RobotScene.cs</code> — <code>CheckCollisions()</code> (called from ComputeIK)</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">void CheckCollisions() {
+    var boxOBBW = mBoxOBB.With(BoxWorldXfm);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>BoxWorldXfm = Matrix3.Translation(700, 0, 700)</code> on the first call.  <code>With(xfm)</code> returns a new <code>OBBTree</code> with all bounding boxes transformed into world space.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    bool anyHit = false;
+    using var bc = OBBCollider.Borrow();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Borrows an <code>OBBCollider</code> from the pool.  The <code>using</code> pattern ensures it is returned when the method exits.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    foreach (var (m, linkOBB) in mLinkOBBs) {
+        bool hit = bc.Check(linkOBB.With(m.Xfm), boxOBBW);
+        m.IsColliding = hit;
+        if (hit) anyHit = true;
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For each robot link: transform its local OBB to world space using <code>m.Xfm</code> (the link&#8217;s current world transform, updated by the preceding <code>JValue</code> assignments), then SAT-test it against the box OBB.  Set <code>m.IsColliding</code> so <code>MechanismVN</code> can highlight the link.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">    mBoxVN.Color = anyHit ? Color4.Red : Color4.Blue;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Box turns red if any link collides; stays blue otherwise.</p>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_first_rendered_frame">2.7. First Rendered Frame</h3>
+<div class="paragraph">
+<p>At this point, the next vsync triggers the Lux render loop:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Clears the framebuffer to <code>Color4.Gray(64)</code>.</p>
+</li>
+<li>
+<p>Traverses the scene graph starting at <code>Root</code>.</p>
+</li>
+<li>
+<p><code>MechanismVN.Draw()</code> — renders all link meshes with correct world transforms.</p>
+</li>
+<li>
+<p><code>mBoxXfm → Mesh3VN.Draw()</code> — renders the blue semi-transparent box at <code>(700, 0, 700)</code>.</p>
+</li>
+<li>
+<p><code>TcpVN.Draw()</code> — draws three coloured arrows and a white ring at the TCP.</p>
+</li>
+<li>
+<p><code>InfoVN.Draw()</code> — renders four lines of text in the lower-left corner.</p>
+</li>
+<li>
+<p><code>TraceVN.It.Draw()</code> — no trace messages yet, draws nothing.</p>
+</li>
+<li>
+<p>Swaps buffers.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The robot is now visible, at home pose, with the box in the scene and the overlay showing all zeros.  The user can interact immediately.</p>
+</div>
+</div>
+</div>
+</div>

@@ -1,0 +1,4 @@
+TITLE=Metamation Developer Notes
+OUTDIR=../../Robotbook
+LOGO=img/logo.png,207,34
+COPYRIGHT=Copyright &copy; 2025 TRUMPF Metamation. All rights reserved.

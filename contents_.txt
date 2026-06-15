@@ -1,0 +1,236 @@
+PRobot Documentation — Contents
+================================
+
+docs/
+├── contents.txt                  This file — index of all documentation
+├── overview.adoc                 Project overview and architecture
+├── filestructure.adoc            File and directory reference
+├── objects-and-methods.adoc      API reference for all classes and methods
+└── part-loading.adoc             How the robot model is loaded, functional and line-by-line
+
+
+────────────────────────────────────────────────────────────────────
+OVERVIEW  (overview.adoc)
+────────────────────────────────────────────────────────────────────
+1.    Purpose
+2.    Functional Capabilities
+        FK / IK / Stance selection / Collision detection
+        Script playback / Click-to-snap
+3.    Architecture Overview
+        Three-layer diagram (application → Nori → native)
+        Data flow: IK interaction
+        Data flow: FK interaction
+4.    Technology Stack
+5.    External Resources (N:\ drive)
+6.    Build and Run
+        Prerequisites / Build command / Run command
+7.    Configuration (hard-coded constants table)
+8.    Robot Model
+        Joint table (S L U R B T — axis, limits, role)
+9.    Kinematics Solver
+        RBRSolver constructor parameters
+10.   Collision Detection
+        OBB tree construction / Per-frame check / Result visualisation
+11.   Scene Graph
+        Full root VNode tree
+12.   UI Layout
+        ASCII panel diagram
+13.   Limitations and Known Issues
+
+
+────────────────────────────────────────────────────────────────────
+FILE STRUCTURE  (filestructure.adoc)
+────────────────────────────────────────────────────────────────────
+1.    Repository Root
+        Annotated directory tree
+2.    Source Files
+  2.1   App.xaml
+  2.2   App.xaml.cs
+  2.3   MainWindow.xaml
+  2.4   MainWindow.xaml.cs
+  2.5   RobotScene.cs
+  2.6   Globals.cs
+  2.7   PRobot.csproj
+  2.8   robot_script.txt
+3.    Compiled Output (Bin\)
+  3.1   PRobot.exe
+  3.2   PRobot.dll
+  3.3   PRobot.pdb
+  3.4   PRobot.runtimeconfig.json
+  3.5   PRobot.deps.json
+  3.6   Nori DLLs (Core, Lux, Host.WPF, System.Reactive, JetBrains, freetype)
+4.    Nori Framework Sources (N:\)
+        Annotated N:\ directory tree
+  4.1   N:\Core\Base\Lib.cs
+  4.2   N:\Core\Sim\Mechanism.cs
+  4.3   N:\Core\Sim\RBRSolver.cs
+  4.4   N:\Core\Sim\OBBTree.cs and OBBCollider.cs
+  4.5   N:\Lux\Scene\Scene.cs
+  4.6   N:\Lux\VNode.cs
+  4.7   N:\Wad\FanucX\mechanism.curl
+
+
+────────────────────────────────────────────────────────────────────
+OBJECTS AND METHODS  (objects-and-methods.adoc)
+────────────────────────────────────────────────────────────────────
+1.    PRobot Application Layer
+  1.1   App  (App.xaml.cs)
+          Constructor App()
+          OnUnhandledException()
+          OnDomainUnhandledException()
+  1.2   MainWindow  (MainWindow.xaml.cs)
+          Constructor MainWindow()
+          OnLuxReady()
+  1.3   RobotScene  (RobotScene.cs)
+          Constructor RobotScene()
+          CreateUI(UIElementCollection)
+            AddSection() helper
+            AddSlider() helper
+          Detached()
+          Picked(object)
+          SnapToFace(Point3)
+          ComputeIK()
+          OnFK()
+          SyncIKSliders()
+          BoxWorldXfm  (property)
+          UpdateBox()
+          CheckCollisions()
+          LoadScript(string)
+          TogglePlay()
+          TickScript()
+          Mech  (property)
+          Tip   (property)
+          InfoData  (property)
+          Private fields table
+  1.4   TcpVN  (RobotScene.cs)
+          Constructor TcpVN(RobotScene)
+          SetAttributes()
+          Draw()
+          DrawArrow(Point3, Vector3, Color4)
+  1.5   InfoVN  (RobotScene.cs)
+          Constructor InfoVN(RobotScene)
+          SetAttributes()
+          Draw()
+2.    Nori Framework Types Used by PRobot
+  2.1   Mechanism
+          Mechanism.Load(string)
+          FindChild(string)
+          EnumTree()
+          Properties: Joint, JMin, JMax, JValue, JVector, Xfm, Mesh, CMesh,
+                       Color, IsColliding, IsVisible, Name
+  2.2   RBRSolver
+          Constructor (a12, a23, a34, s2, s4, s6, min[], max[])
+          ComputeStances(Point3, Vector3, Vector3)
+          Solutions  (property)
+          Soln: OK, GetJointAngle(int)
+  2.3   OBBTree
+          OBBTree.From(Mesh3)
+          With(Matrix3)
+          Empty  (static field)
+  2.4   OBBCollider
+          OBBCollider.Borrow()
+          Check(OBBTree, OBBTree)
+  2.5   Scene3
+          Properties: Root, BgrdColor, Bound, Rect
+          Overrides: Detached(), Picked(object)
+  2.6   VNode
+          Properties: Streaming, NoPicking, Obj
+          Overrides: Draw(), SetAttributes(), GetChild(int)
+  2.7   GroupVN
+  2.8   XfmVN
+          Xfm  (property)
+  2.9   Mesh3VN
+          Mode, Color  (properties)
+  2.10  MechanismVN
+  2.11  TraceVN
+          It / TextColor / Print(string)
+  2.12  Lux  (static class)
+          UIScene, PickPos, PanelSize
+          Color, LineWidth, PointSize, TypeFace, ZLevel, Xfm
+          Lines(ReadOnlySpan<Vec3F>)
+          Text(string, Vec2S)
+  2.13  WPFHost
+          Init(Window, Action)
+  2.14  CoordSystem
+          World / Org / VecX / VecY / VecZ / * Matrix3
+  2.15  Matrix3
+          Translation / Rotation / Scaling / Identity
+  2.16  Color4
+          Named constructors / R G B A
+  2.17  Mesh3
+          Extrude(Poly[], double, Matrix3, ETess)
+  2.18  Poly
+          Poly.Rectangle(x1, y1, x2, y2)
+  2.19  FastTess2D
+  2.20  TypeFace
+          Constructor / LineHeight / PixelSize
+  2.21  Lib
+          Init() / Tessellate / Tracer / Trace() / ReadBytes()
+3.    Enumerations
+  3.1   EJoint  (None, Translate, Rotate)
+  3.2   ETess   (VeryCoarse … VeryFine)
+  3.3   EShadeMode  (Glass, Phong, Flat)
+  3.4   EAxis   (X, Y, Z)
+
+
+────────────────────────────────────────────────────────────────────
+PART LOADING  (part-loading.adoc)
+────────────────────────────────────────────────────────────────────
+Functional View
+  Phase 1 — Application Bootstrap
+  Phase 2 — Window and OpenGL Surface Creation
+  Phase 3 — Scene Initialisation (OnLuxReady)
+  Phase 4 — Robot Scene Construction
+      4a  Mechanism loading (mechanism.curl → kinematic tree + meshes)
+      4b  Node lookup (Tip, S L U R B T)
+      4c  Joint limits (JMin/JMax → mMin[], mMax[])
+      4d  IK solver construction (DH parameters table)
+      4e  Obstacle box (Poly → Extrude → OBBTree → Mesh3VN → XfmVN)
+      4f  Link OBB trees (CMesh / Mesh fallback, local space)
+      4g  Gripper transform node
+      4h  Home pose and first IK call
+      4i  Script timer (DispatcherTimer 500 ms)
+      4j  Overlay nodes (InfoVN, TcpVN)
+      4k  Scene graph assembly (Root GroupVN)
+  Phase 5 — UI Population (CreateUI)
+  Phase 6 — Steady-State Operation
+
+Line-by-Line Trace
+  App.xaml.cs — Application Startup           (lines 15-18)
+  MainWindow.xaml.cs — Window Construction    (lines 13-14)
+  MainWindow.xaml.cs — OnLuxReady            (lines 19-24)
+  RobotScene.cs — Constructor               (lines 12-38)
+      L13   Mechanism.Load  (mechanism file parse + mesh load)
+      L13   FindChild("Tip")
+      L14   Joint array via LINQ
+      L16   Joint limits copy loop
+      L20   RBRSolver construction
+      L22   Lib.Tessellate assignment
+      L23   Poly.Rectangle
+      L23   Mesh3.Extrude
+      L24   OBBTree.From (box)
+      L24   Mesh3VN (box visual)
+      L25   XfmVN (box transform)
+      L27   Link OBB tree loop
+      L31   Gripper XfmVN
+      L31   mCS = mHome; ComputeIK()
+      L33   DispatcherTimer setup
+      L35   InfoVN / TcpVN creation
+      L37   Lib.Tracer assignment
+      L37   BgrdColor
+      L38   Bound
+      L38   Root assignment
+  RobotScene.cs — ComputeIK() first call    (lines 112-122)
+      Euler rotation build
+      TCP world position
+      mSolver.ComputeStances
+      Stance loop (ListBox + JValue assignment)
+      mGripper.Xfm update
+      CheckCollisions call
+  RobotScene.cs — CheckCollisions()         (lines 137-141)
+      BoxWorldXfm / OBBTree.With
+      OBBCollider.Borrow
+      Per-link SAT check loop
+      Box colour update
+  First Rendered Frame
+      Render loop traversal order

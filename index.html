@@ -1,0 +1,738 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Encode+Sans+Semi+Condensed:wght@400;600&family=Nunito+Sans:ital,wght@0,400;0,600;1,400;1,600&family=Roboto+Mono:ital,wght@0,400;0,600;1,400;1,600&display=block" rel="stylesheet">
+  <link rel="stylesheet" href="res/bento.css">
+  <link rel="stylesheet" href="res/site.css">
+  <link rel="stylesheet" href="res/tree.css">
+  <link rel="stylesheet" href="res/sibling.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <title>PRobot — Project Overview</title>
+</head>
+<body id="site-body" onload="sLoaded()">
+    <header id="site-header">
+        <div id="header-logo"><img src="img/logo.png" width="207" height="34" /></div>
+        <div><p>Metamation Developer Notes</p></div>
+    </header>
+    <div id="site-main">
+        <nav id="site-nav">
+            <div class="treesite">
+  <ul>
+    <li><button class="tree blank"></button><a class="active" href="index.html">PRobot — Project Overview</a></li>
+    <li><button class="tree blank"></button><a href="filestructure.html">PRobot — File Structure</a></li>
+    <li><button class="tree blank"></button><a href="objects-and-methods.html">PRobot — Objects and Methods Reference</a></li>
+    <li><button class="tree blank"></button><a href="part-loading.html">PRobot — How a Part Is Loaded</a></li>
+  </ul>
+</div>
+
+        </nav>
+        <div id="site-nav-right">
+            <nav id="site-crumb">
+  <div>
+    <button>
+      <img src="res/home.png">
+    </button>
+  </div>
+  <div>
+    <a href="index.html">PRobot — Project Overview</a>
+  </div>
+</nav>
+
+            <div id="site-crumb-below">
+                <div id="site-toc-left">
+                    <article id="article">
+                        <h1>PRobot — Project Overview</h1>
+<div class="sect1">
+<h2 id="_purpose">1. Purpose</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>PRobot is a Windows desktop application for interactive 6-axis robot kinematics.  It combines a real-time 3D renderer with a forward/inverse kinematics solver and provides a slider-driven UI that lets an engineer explore the entire reachable workspace of a FANUC X-series arm, detect collisions with an obstacle box, and replay pre-recorded motion scripts.</p>
+</div>
+<div class="paragraph">
+<p>The application is a self-contained research and demonstration tool — no PLC, no driver, no network protocol.  Everything executes in-process.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_functional_capabilities">2. Functional Capabilities</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Capability</th>
+<th class="tableblock halign-left valign-top">Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Forward kinematics (FK)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Six joint-angle sliders (S L U R B T).  Changing any slider immediately propagates new joint angles through the kinematic chain and redraws the 3D arm.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Inverse kinematics (IK)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Six TCP sliders (X Y Z Rx Ry Rz).  On every change, the RBR solver computes up to eight closed-form solutions.  The selected <em>stance</em> index chooses one.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Stance selection</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A ListBox shows which of the eight IK branches are reachable (<code>Stance N</code>) and which are not (<code>----</code>).  The user or script can switch between valid stances without changing the target pose.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Collision detection</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Every robot link has a pre-built OBB tree.  After each FK/IK update, all link trees are tested against the obstacle-box OBB tree.  Hitting links are flagged on the Mechanism and the box turns red.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Script playback</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A plain-text file of (X Y Z Rx Ry Rz) waypoints is loaded and stepped through on a 500 ms timer.  The script drives the IK path identically to manual slider use.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Click-to-snap</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Clicking a face of the obstacle box in the 3D view computes the nearest face normal, sets the TCP orientation to point into that face, and moves the TCP origin to the clicked point.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_architecture_overview">3. Architecture Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>PRobot is structured in three layers.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>┌─────────────────────────────────────────────────────────────┐
+│  PRobot  (application layer — C# WPF, net10.0-windows)      │
+│                                                             │
+│  App.xaml.cs  ── global exception handling, culture        │
+│  MainWindow.xaml.cs  ── WPF window, Nori bootstrap         │
+│  RobotScene.cs  ── all robot logic, UI, scene graph        │
+├─────────────────────────────────────────────────────────────┤
+│  Nori framework  (in-house, on N:\)                         │
+│                                                             │
+│  Nori.Core     ── geometry, math, mechanism, IK, collision  │
+│  Nori.Lux      ── OpenGL scene graph, rendering engine     │
+│  Nori.Host.WPF ── WPF ↔ OpenGL surface bridge             │
+│  Nori.Gen      ── Roslyn source generator (build-time)     │
+├─────────────────────────────────────────────────────────────┤
+│  Native layer                                               │
+│                                                             │
+│  freetype.dll  ── font rasterisation (text overlay)        │
+│  OpenGL / GLFW ── GPU rendering surface                    │
+└─────────────────────────────────────────────────────────────┘</pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_data_flow_ik_interaction">3.1. Data Flow — IK Interaction</h3>
+<div class="listingblock">
+<div class="content">
+<pre>User moves IK slider
+        │
+        ▼
+  mX/mY/mZ/mRx/mRy/mRz updated
+        │
+        ▼
+  ComputeIK()
+  ├─ Build target CoordSystem from Euler angles + position
+  ├─ RBRSolver.ComputeStances(org, vecZ, vecX)
+  │    └─ fills Solutions[0..7]
+  ├─ Apply selected stance angles → mJoints[i].JValue
+  ├─ mGripper.Xfm ← mTip.Xfm  (gripper follows TCP)
+  └─ CheckCollisions()
+       ├─ transform box OBB to world space
+       ├─ for each link OBB (world space) → OBBCollider.Check()
+       ├─ m.IsColliding = hit
+       └─ mBoxVN.Color = anyHit ? Red : Blue
+        │
+        ▼
+  Lux scene graph redraws on next vsync
+  ├─ MechanismVN   renders arm (colliding links highlighted)
+  ├─ TcpVN         draws TCP arrows + origin ring
+  └─ InfoVN        prints joint angles + TCP numbers</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_data_flow_fk_interaction">3.2. Data Flow — FK Interaction</h3>
+<div class="listingblock">
+<div class="content">
+<pre>User moves FK slider
+        │
+        ▼
+  m.JValue = sliderValue   (Mechanism joint updated)
+        │
+        ▼
+  OnFK()
+  ├─ mGripper.Xfm ← mTip.Xfm
+  └─ CheckCollisions()</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_technology_stack">4. Technology Stack</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 50%;">
+<col style="width: 16.6667%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Component</th>
+<th class="tableblock halign-left valign-top">Technology</th>
+<th class="tableblock halign-left valign-top">Version</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Host OS / platform</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Windows 10+ (x64)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Runtime</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">.NET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10.0</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UI toolkit</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WPF (Windows Presentation Foundation)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10.0</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3D graphics</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Nori.Lux (in-house OpenGL renderer)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.0.0</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Scene / geometry / kinematics</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Nori.Core</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.0.0</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WPF ↔ OpenGL bridge</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Nori.Host.WPF</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.0.0</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Roslyn analyser / code gen</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Nori.Gen</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.0.0</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Reactive streams</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">System.Reactive</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6.0.1</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Code annotation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JetBrains.Annotations</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2025.2.4</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Font rasterisation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FreeType (native DLL)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_external_resources_n_drive">5. External Resources (N:\ Drive)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All resources listed below must be reachable at build time and/or runtime.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>N:\Core\Nori.Core.csproj</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Core library — referenced as ProjectReference</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>N:\Host\WPF\Nori.Host.WPF.csproj</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WPF host — referenced as ProjectReference</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>N:\Lux\Nori.Lux.csproj</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rendering engine — referenced as ProjectReference</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>N:\Tools\Generate\Nori.Gen.csproj</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Roslyn analyser — referenced as Analyzer</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>N:\Bin\freetype.dll</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Copied to <code>Bin\</code> by post-build step</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>N:\Wad\FanucX\mechanism.curl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FANUC X-series robot definition — loaded at runtime</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>nori:GL/Fonts/RobotoMono-Regular.ttf</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Monospace font for info overlay — loaded via <code>Lib.ReadBytes</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<code>nori:</code> is a virtual URI scheme resolved by <code>Lib.ReadBytes</code> / <code>Lib.OpenRead</code> within Nori.Core.  It maps to embedded resources inside the Nori assemblies.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_build_and_run">6. Build and Run</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_prerequisites">6.1. Prerequisites</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>.NET 10.0 SDK with Windows Desktop workload</p>
+</li>
+<li>
+<p>Visual Studio 2022+ (recommended) — or CLI with MSBuild</p>
+</li>
+<li>
+<p><code>N:\</code> drive mounted (Nori sources + robot data)</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_build">6.2. Build</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">dotnet build PRobot/PRobot.csproj
+# Output: Bin\PRobot.exe (and all dependent DLLs)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_run">6.3. Run</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Bin\PRobot.exe</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or through Visual Studio: <kbd>F5</kbd>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configuration">6.4. Configuration</h3>
+<div class="paragraph">
+<p>There is no application configuration file.  All tunable values are hard-coded constants in <code>RobotScene.cs</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Constant</th>
+<th class="tableblock halign-left valign-top">Value</th>
+<th class="tableblock halign-left valign-top">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Home world position</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>(1166, 0, 1161−565)</code> = <code>(1166, 0, 596)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Robot base in world coordinates (mm)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">IK TCP offset</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>cs.VecZ * 50</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">50 mm tool length added along approach axis</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Box obstacle size</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">200 × 200 × 200 mm</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Default obstacle dimensions</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Box initial position</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>(700, 0, 700)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">mBX, mBY, mBZ starting values (mm)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Script step interval</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">500 ms</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DispatcherTimer period</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TCP ring radius</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10 mm</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Radius of the white origin ring drawn by TcpVN</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TCP arrow length</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">90 mm</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Arrow shaft length (L in DrawArrow)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Solver DH params</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>(150, 770, 0, 0, 1016, 175, …)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">RBRSolver construction — FANUC X link lengths</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_robot_model">7. Robot Model</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The robot is a FANUC X-series 6-axis arm defined by <code>N:/Wad/FanucX/mechanism.curl</code>.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3335%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Joint</th>
+<th class="tableblock halign-left valign-top">Axis</th>
+<th class="tableblock halign-left valign-top">Limits</th>
+<th class="tableblock halign-left valign-top">Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">S (Shoulder)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Z</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">±185°</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Base rotation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">L (Lower arm)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Y</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">−180° to +25°</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shoulder elevation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">U (Upper arm)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Y</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">−225° to +70°</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Elbow</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">R (Rotate)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">±365°</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Forearm rotation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">B (Bend)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Y</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">±120°</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Wrist bend</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">T (Twist)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Z</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">±365°</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Wrist twist</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Joint limits (<code>JMin</code>, <code>JMax</code>) are read from the mechanism file and passed directly to <code>RBRSolver</code>.  The solver uses them to filter which of the eight algebraic solutions are physically reachable.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_kinematics_solver">8. Kinematics Solver</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>RBRSolver</code> implements a closed-form analytical inverse kinematics algorithm for the RBR (Roll-Bend-Roll) wrist topology common to 6-axis industrial robots.</p>
+</div>
+<div class="listingblock">
+<div class="title">Constructor parameters</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">new RBRSolver(
+    a12: 150,    // link offset, joint 1-2 (mm)
+    a23: 770,    // link length, joint 2-3 (mm)
+    a34: 0,      // link offset, joint 3-4 (mm)
+    s2:  0,      // shoulder offset (mm)
+    s4:  1016,   // forearm length (mm)
+    s6:  175,    // wrist offset to tip (mm)
+    min: mMin,   // per-joint minimum angles (rad or deg)
+    max: mMax    // per-joint maximum angles (rad or deg)
+)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>ComputeStances</code> is called with the target TCP origin, approach vector, and orientation vector.  It fills <code>Solutions[0..7]</code>.  Each <code>Soln</code> carries a flag <code>OK</code> indicating feasibility (within limits, no singularity).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_collision_detection">9. Collision Detection</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Collision detection uses Oriented Bounding Box (OBB) trees.</p>
+</div>
+<div class="ulist">
+<div class="title">Construction (startup)</div>
+<ul>
+<li>
+<p>For every <code>Mechanism</code> node that has a <code>CMesh</code> (collision mesh) or a visual <code>Mesh</code>, an <code>OBBTree</code> is built by <code>OBBTree.From(mesh)</code> and stored in <code>mLinkOBBs</code>.</p>
+</li>
+<li>
+<p>The obstacle box OBB is built from the extruded <code>Mesh3</code> at startup.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Per-frame check</div>
+<ul>
+<li>
+<p><code>BoxWorldXfm</code> computes the current world transform of the box.</p>
+</li>
+<li>
+<p><code>mBoxOBB.With(BoxWorldXfm)</code> produces a world-space copy of the box OBB tree.</p>
+</li>
+<li>
+<p>For each link, <code>linkOBB.With(m.Xfm)</code> produces a world-space link OBB tree.</p>
+</li>
+<li>
+<p><code>OBBCollider.Check(linkOBBW, boxOBBW)</code> uses the Separating Axis Theorem (SAT) for an O(log n) narrow-phase check.</p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Result visualization</div>
+<ul>
+<li>
+<p><code>m.IsColliding = hit</code> — the <code>MechanismVN</code> uses this flag to change the link&#8217;s rendered color.</p>
+</li>
+<li>
+<p><code>mBoxVN.Color = anyHit ? Color4.Red : Color4.Blue</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scene_graph">10. Scene Graph</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Lux scene graph (<code>Root</code>) at startup:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>GroupVN
+├── MechanismVN(mMech)   — renders the full kinematic tree
+├── XfmVN(mGripper)      — follows mTip.Xfm; holds a placeholder GroupVN
+├── XfmVN(mBoxXfm)       — applies box world transform; holds Mesh3VN(mBoxMesh)
+├── TcpVN                — draws TCP axes + ring (Streaming=true)
+├── InfoVN               — draws text overlay (Streaming=true)
+└── TraceVN.It           — singleton debug print overlay</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>Streaming = true</code> on <code>TcpVN</code> and <code>InfoVN</code> means their <code>Draw()</code> method is called every frame rather than being cached in a geometry batch.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ui_layout">11. UI Layout</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre>┌──────────────────────────────────────────────────────────────┐
+│ PRobot  Robot IK/FK Solver                    (header bar)   │
+├──────────────────────────────────────────────┬───────────────┤
+│                                              │ Settings      │
+│                                              │ ──────────    │
+│                                              │ Forward Kin.  │
+│                 OpenGL viewport              │  S L U R B T  │
+│                 (interactive 3D)             │ ──────────    │
+│                                              │ Inverse Kin.  │
+│                                              │  X Y Z Rx…   │
+│                                              │ ──────────    │
+│                                              │ Stances       │
+│                                              │  [ListBox]    │
+│                                              │ ──────────    │
+│                                              │ Obstacle      │
+│                                              │  BX BY BZ     │
+│                                              │ ──────────    │
+│                                              │ Script        │
+│                                              │  [path]       │
+│                                              │  Load  Play   │
+└──────────────────────────────────────────────┴───────────────┘</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The settings panel (right, 500 pt wide) is a <code>ScrollViewer</code> around a <code>StackPanel</code> populated programmatically by <code>RobotScene.CreateUI()</code> after the WPF layout pass completes.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_limitations_and_known_issues">12. Limitations and Known Issues</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Windows-only (<code>net10.0-windows</code>, WPF, OpenGL via GLFW).</p>
+</li>
+<li>
+<p>x64-only (FreeType and Nori native binaries are 64-bit).</p>
+</li>
+<li>
+<p>The <code>N:\</code> drive must be available on every machine that builds the project.</p>
+</li>
+<li>
+<p>There is no <code>.gitignore</code>, so <code>Bin\</code>, <code>obj\</code>, and <code>.vs\</code> are committed.</p>
+</li>
+<li>
+<p>No automated tests exist; verification is entirely manual.</p>
+</li>
+<li>
+<p>No CI/CD pipeline is configured.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+                    </article>
+                </div>
+                <div id="site-toc-holder">
+                    <aside id="site-toc">
+  <h3>Contents</h3>
+  <ul>
+    <li level="1">
+      <a href="#_purpose">1. Purpose</a>
+    </li>
+    <li level="1">
+      <a href="#_functional_capabilities">2. Functional Capabilities</a>
+    </li>
+    <li level="1">
+      <a href="#_architecture_overview">3. Architecture Overview</a>
+    </li>
+    <li level="2">
+      <a href="#_data_flow_ik_interaction">3.1. Data Flow — IK Interaction</a>
+    </li>
+    <li level="2">
+      <a href="#_data_flow_fk_interaction">3.2. Data Flow — FK Interaction</a>
+    </li>
+    <li level="1">
+      <a href="#_technology_stack">4. Technology Stack</a>
+    </li>
+    <li level="1">
+      <a href="#_external_resources_n_drive">5. External Resources (N:\ Drive)</a>
+    </li>
+    <li level="1">
+      <a href="#_build_and_run">6. Build and Run</a>
+    </li>
+    <li level="2">
+      <a href="#_prerequisites">6.1. Prerequisites</a>
+    </li>
+    <li level="2">
+      <a href="#_build">6.2. Build</a>
+    </li>
+    <li level="2">
+      <a href="#_run">6.3. Run</a>
+    </li>
+    <li level="2">
+      <a href="#_configuration">6.4. Configuration</a>
+    </li>
+    <li level="1">
+      <a href="#_robot_model">7. Robot Model</a>
+    </li>
+    <li level="1">
+      <a href="#_kinematics_solver">8. Kinematics Solver</a>
+    </li>
+    <li level="1">
+      <a href="#_collision_detection">9. Collision Detection</a>
+    </li>
+    <li level="1">
+      <a href="#_scene_graph">10. Scene Graph</a>
+    </li>
+    <li level="1">
+      <a href="#_ui_layout">11. UI Layout</a>
+    </li>
+    <li level="1">
+      <a href="#_limitations_and_known_issues">12. Limitations and Known Issues</a>
+    </li>
+  </ul>
+</aside>
+
+                </div>
+            </div>
+            <nav class="pagination">
+  <span class="next"><a href="filestructure.html">PRobot — File Structure</a></span>
+</nav>
+
+        </div>
+        <div id="searchbox">
+          <input id="searchinput" type="search" placeholder="Search... (Key: F)" autocomplete="false" size="30" />
+          <ul id="results"></ul>
+        </div>
+    </div>
+    <footer id="site-footer">
+        <div class="left">
+            <p>&nbsp;&nbsp;Copyright &copy; 2025 TRUMPF Metamation. All rights reserved.</p>
+        </div>
+        <div class="middle"></div>
+        <div class="right">
+            <p>Compiled 2026.06.15 by Bento 35</p>
+            <img src="res/bento.png" />
+        </div>
+    </footer>
+    <script>
+        // The baseLevel is used to assign the search result pages.
+        var baseLevel = "res".replace("res", "");
+    </script>
+    <script src="https://unpkg.com/lunr/lunr.js"></script>
+    <script src="res/index.js"></script>
+    <script src="res/files.js"></script>
+    <script src="res/site.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>
+  <script>
+    if (!hljs.initHighlighting.called) {
+      hljs.initHighlighting.called = true
+      ;[].slice.call(document.querySelectorAll('pre.highlight > code[data-lang]')).forEach(function (el) { hljs.highlightBlock(el) })
+    }
+  </script>
+</body>
+</html>

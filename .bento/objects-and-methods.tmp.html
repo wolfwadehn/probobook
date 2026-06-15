@@ -1,0 +1,1829 @@
+<div id="toc" class="toc">
+<div id="toctitle">Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_probot_application_layer">1. PRobot Application Layer</a>
+<ul class="sectlevel2">
+<li><a href="#_app_app_xaml_cs">1.1. <code>App</code> (<code>App.xaml.cs</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_constructor_app">1.1.1. Constructor — <code>App()</code></a></li>
+<li><a href="#_onunhandledexception_static_private">1.1.2. <code>OnUnhandledException</code> (static, private)</a></li>
+<li><a href="#_ondomainunhandledexception_static_private">1.1.3. <code>OnDomainUnhandledException</code> (static, private)</a></li>
+</ul>
+</li>
+<li><a href="#_mainwindow_mainwindow_xaml_cs">1.2. <code>MainWindow</code> (<code>MainWindow.xaml.cs</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_constructor_mainwindow">1.2.1. Constructor — <code>MainWindow()</code></a></li>
+<li><a href="#_onluxready_private">1.2.2. <code>OnLuxReady</code> (private)</a></li>
+</ul>
+</li>
+<li><a href="#_robotscene_robotscene_cs">1.3. <code>RobotScene</code> (<code>RobotScene.cs</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_constructor_robotscene">1.3.1. Constructor — <code>RobotScene()</code></a></li>
+<li><a href="#_createuiuielementcollection_ui_public">1.3.2. <code>CreateUI(UIElementCollection ui)</code> (public)</a></li>
+<li><a href="#_detached_public_override">1.3.3. <code>Detached()</code> (public override)</a></li>
+<li><a href="#_pickedobject_obj_public_override">1.3.4. <code>Picked(object obj)</code> (public override)</a></li>
+<li><a href="#_snaptofacepoint3_hit_private">1.3.5. <code>SnapToFace(Point3 hit)</code> (private)</a></li>
+<li><a href="#_computeik_private">1.3.6. <code>ComputeIK()</code> (private)</a></li>
+<li><a href="#_onfk_private">1.3.7. <code>OnFK()</code> (private)</a></li>
+<li><a href="#_synciksliders_private">1.3.8. <code>SyncIKSliders()</code> (private)</a></li>
+<li><a href="#_boxworldxfm_private_property">1.3.9. <code>BoxWorldXfm</code> (private property)</a></li>
+<li><a href="#_updatebox_private">1.3.10. <code>UpdateBox()</code> (private)</a></li>
+<li><a href="#_checkcollisions_private">1.3.11. <code>CheckCollisions()</code> (private)</a></li>
+<li><a href="#_loadscriptstring_path_private">1.3.12. <code>LoadScript(string path)</code> (private)</a></li>
+<li><a href="#_toggleplay_private">1.3.13. <code>TogglePlay()</code> (private)</a></li>
+<li><a href="#_tickscript_private">1.3.14. <code>TickScript()</code> (private)</a></li>
+<li><a href="#_mech_public_property">1.3.15. <code>Mech</code> (public property)</a></li>
+<li><a href="#_tip_public_property">1.3.16. <code>Tip</code> (public property)</a></li>
+<li><a href="#_infodata_public_property">1.3.17. <code>InfoData</code> (public property)</a></li>
+<li><a href="#_private_fields">1.3.18. Private Fields</a></li>
+</ul>
+</li>
+<li><a href="#_tcpvn_robotscene_cs">1.4. <code>TcpVN</code> (<code>RobotScene.cs</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_constructor_tcpvnrobotscene_scene">1.4.1. Constructor — <code>TcpVN(RobotScene scene)</code></a></li>
+<li><a href="#_setattributes_public_override">1.4.2. <code>SetAttributes()</code> (public override)</a></li>
+<li><a href="#_draw_public_override">1.4.3. <code>Draw()</code> (public override)</a></li>
+<li><a href="#_drawarrowpoint3_from_vector3_dir_color4_color_private">1.4.4. <code>DrawArrow(Point3 from, Vector3 dir, Color4 color)</code> (private)</a></li>
+</ul>
+</li>
+<li><a href="#_infovn_robotscene_cs">1.5. <code>InfoVN</code> (<code>RobotScene.cs</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_constructor_infovnrobotscene_scene">1.5.1. Constructor — <code>InfoVN(RobotScene scene)</code></a></li>
+<li><a href="#_setattributes_public_override_2">1.5.2. <code>SetAttributes()</code> (public override)</a></li>
+<li><a href="#_draw_public_override_2">1.5.3. <code>Draw()</code> (public override)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_nori_framework_types_used_by_probot">2. Nori Framework Types Used by PRobot</a>
+<ul class="sectlevel2">
+<li><a href="#_mechanism_ncoresimmechanism_cs">2.1. <code>Mechanism</code> (<code>N:\Core\Sim\Mechanism.cs</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_mechanism_loadstring_curlfile_static">2.1.1. <code>Mechanism.Load(string curlFile)</code> (static)</a></li>
+<li><a href="#_findchildstring_name_mechanism">2.1.2. <code>FindChild(string name)</code> → <code>Mechanism?</code></a></li>
+<li><a href="#_enumtree_ienumerablemechanism">2.1.3. <code>EnumTree()</code> → <code>IEnumerable&lt;Mechanism&gt;</code></a></li>
+<li><a href="#_properties">2.1.4. Properties</a></li>
+</ul>
+</li>
+<li><a href="#_rbrsolver_ncoresimrbrsolver_cs">2.2. <code>RBRSolver</code> (<code>N:\Core\Sim\RBRSolver.cs</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_constructor">2.2.1. Constructor</a></li>
+<li><a href="#_computestancespoint3_fptool_vector3_vecz_vector3_vecx">2.2.2. <code>ComputeStances(Point3 Fptool, Vector3 vecZ, Vector3 vecX)</code></a></li>
+<li><a href="#_solutions_ireadonlylistsoln">2.2.3. <code>Solutions</code> → <code>IReadOnlyList&lt;Soln&gt;</code></a></li>
+<li><a href="#_soln_nested_class">2.2.4. <code>Soln</code> (nested class)</a></li>
+</ul>
+</li>
+<li><a href="#_obbtree_ncoresimobbtree_cs">2.3. <code>OBBTree</code> (<code>N:\Core\Sim\OBBTree.cs</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_obbtree_frommesh3_mesh_static">2.3.1. <code>OBBTree.From(Mesh3 mesh)</code> (static)</a></li>
+<li><a href="#_withmatrix3_xfm_obbtree">2.3.2. <code>With(Matrix3 xfm)</code> → <code>OBBTree</code></a></li>
+<li><a href="#_empty_static_field">2.3.3. <code>Empty</code> (static field)</a></li>
+</ul>
+</li>
+<li><a href="#_obbcollider_ncoresimobbcollider_cs">2.4. <code>OBBCollider</code> (<code>N:\Core\Sim\OBBCollider.cs</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_obbcollider_borrow_obbcollider">2.4.1. <code>OBBCollider.Borrow()</code> → <code>OBBCollider</code></a></li>
+<li><a href="#_checkobbtree_a_obbtree_b_bool_onecrash_false_bool">2.4.2. <code>Check(OBBTree a, OBBTree b, bool oneCrash = false)</code> → <code>bool</code></a></li>
+</ul>
+</li>
+<li><a href="#_scene3_nluxscenescene_cs">2.5. <code>Scene3</code> (<code>N:\Lux\Scene\Scene.cs</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_properties_2">2.5.1. Properties</a></li>
+<li><a href="#_overridable_methods">2.5.2. Overridable Methods</a></li>
+</ul>
+</li>
+<li><a href="#_vnode_nluxvnode_cs">2.6. <code>VNode</code> (<code>N:\Lux\VNode.cs</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_key_properties">2.6.1. Key Properties</a></li>
+<li><a href="#_overridable_methods_2">2.6.2. Overridable Methods</a></li>
+</ul>
+</li>
+<li><a href="#_groupvn_nluxvnodes_cs">2.7. <code>GroupVN</code> (<code>N:\Lux\VNodes.cs</code>)</a></li>
+<li><a href="#_xfmvn_nluxvnodes_cs">2.8. <code>XfmVN</code> (<code>N:\Lux\VNodes.cs</code>)</a></li>
+<li><a href="#_mesh3vn_nluxvnodes_cs">2.9. <code>Mesh3VN</code> (<code>N:\Lux\VNodes.cs</code>)</a></li>
+<li><a href="#_mechanismvn_nluxvnodes_cs">2.10. <code>MechanismVN</code> (<code>N:\Lux\VNodes.cs</code>)</a></li>
+<li><a href="#_tracevn_nluxvnodes_cs">2.11. <code>TraceVN</code> (<code>N:\Lux\VNodes.cs</code>)</a></li>
+<li><a href="#_lux_nluxlux_cs">2.12. <code>Lux</code> (<code>N:\Lux\Lux.cs</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_scene_management">2.12.1. Scene Management</a></li>
+<li><a href="#_drawing_state">2.12.2. Drawing State</a></li>
+<li><a href="#_drawing_commands">2.12.3. Drawing Commands</a></li>
+</ul>
+</li>
+<li><a href="#_wpfhost_nhostwpfhost_cs">2.13. <code>WPFHost</code> (<code>N:\Host\WPF\Host.cs</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_wpfhost_initwindow_main_action_onready_uielement">2.13.1. <code>WPFHost.Init(Window main, Action onReady)</code> → <code>UIElement</code></a></li>
+</ul>
+</li>
+<li><a href="#_coordsystem_ncoregeom">2.14. <code>CoordSystem</code> (<code>N:\Core\Geom\</code>)</a></li>
+<li><a href="#_matrix3_ncoregeommatrix_cs">2.15. <code>Matrix3</code> (<code>N:\Core\Geom\Matrix.cs</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_factory_methods">2.15.1. Factory Methods</a></li>
+</ul>
+</li>
+<li><a href="#_color4_ncorebasestructs_cs">2.16. <code>Color4</code> (<code>N:\Core\Base\Structs.cs</code>)</a></li>
+<li><a href="#_mesh3_ncoremeshmesh_cs">2.17. <code>Mesh3</code> (<code>N:\Core\Mesh\Mesh.cs</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_mesh3_extrudepoly_profiles_double_height_matrix3_baseplane_etess_tess_static">2.17.1. <code>Mesh3.Extrude(Poly[] profiles, double height, Matrix3 basePlane, ETess tess)</code> (static)</a></li>
+</ul>
+</li>
+<li><a href="#_poly_ncoregeompoly_cs">2.18. <code>Poly</code> (<code>N:\Core\Geom\Poly.cs</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_poly_rectangledouble_x1_double_y1_double_x2_double_y2_static">2.18.1. <code>Poly.Rectangle(double x1, double y1, double x2, double y2)</code> (static)</a></li>
+</ul>
+</li>
+<li><a href="#_fasttess2d_ncoregeomtess_cs">2.19. <code>FastTess2D</code> (<code>N:\Core\Geom\Tess.cs</code>)</a></li>
+<li><a href="#_typeface_nluxfonttypeface_cs">2.20. <code>TypeFace</code> (<code>N:\Lux\Font\TypeFace.cs</code>)</a>
+<ul class="sectlevel3">
+<li><a href="#_constructor_2">2.20.1. Constructor</a></li>
+<li><a href="#_properties_3">2.20.2. Properties</a></li>
+</ul>
+</li>
+<li><a href="#_lib_ncorebaselib_cs">2.21. <code>Lib</code> (<code>N:\Core\Base\Lib.cs</code>)</a></li>
+</ul>
+</li>
+<li><a href="#_enumerations">3. Enumerations</a>
+<ul class="sectlevel2">
+<li><a href="#_ejoint_ncorebaseenum_cs">3.1. <code>EJoint</code> (<code>N:\Core\Base\Enum.cs</code>)</a></li>
+<li><a href="#_etess_ncorebaseenum_cs">3.2. <code>ETess</code> (<code>N:\Core\Base\Enum.cs</code>)</a></li>
+<li><a href="#_eshademode_nlux">3.3. <code>EShadeMode</code> (<code>N:\Lux\</code>)</a></li>
+<li><a href="#_eaxis_ncorebaseenum_cs">3.4. <code>EAxis</code> (<code>N:\Core\Base\Enum.cs</code>)</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This document describes every class, struct, enum, property, and method that is defined in the PRobot source code and every type from the Nori framework that is directly used by PRobot.  Types are listed in dependency order (leaf types first).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_probot_application_layer">1. PRobot Application Layer</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_app_app_xaml_cs">1.1. <code>App</code> (<code>App.xaml.cs</code>)</h3>
+<div class="paragraph">
+<p>Partial class extending <code>System.Windows.Application</code>.  Instantiated automatically by WPF when <code>PRobot.exe</code> starts.</p>
+</div>
+<div class="sect3">
+<h4 id="_constructor_app">1.1.1. Constructor — <code>App()</code></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">public App()</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Sets <code>Thread.CurrentThread.CurrentCulture</code> and <code>CultureInfo.DefaultThreadCurrentCulture</code> to <code>InvariantCulture</code>.  Ensures all <code>double.Parse</code> calls use <code>.</code> as the decimal separator, regardless of regional settings.</p>
+</li>
+<li>
+<p>Registers <code>OnDomainUnhandledException</code> on <code>AppDomain.CurrentDomain.UnhandledException</code>.</p>
+</li>
+<li>
+<p>Registers <code>OnUnhandledException</code> on <code>this.DispatcherUnhandledException</code>.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_onunhandledexception_static_private">1.1.2. <code>OnUnhandledException</code> (static, private)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">static void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Called when an unhandled exception propagates through the WPF dispatcher.  Shows a <code>MessageBox</code> with the exception details.  Sets <code>e.Handled = true</code> so the app keeps running.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_ondomainunhandledexception_static_private">1.1.3. <code>OnDomainUnhandledException</code> (static, private)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">static void OnDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Called for exceptions on non-dispatcher threads.  Shows a <code>MessageBox</code>.  Does not suppress further propagation (the CLR may still terminate the process).</p>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mainwindow_mainwindow_xaml_cs">1.2. <code>MainWindow</code> (<code>MainWindow.xaml.cs</code>)</h3>
+<div class="paragraph">
+<p>Partial class extending <code>System.Windows.Window</code>.  The sole top-level window.</p>
+</div>
+<div class="sect3">
+<h4 id="_constructor_mainwindow">1.2.1. Constructor — <code>MainWindow()</code></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">public MainWindow()</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>Lib.Init()</code> — initialises the Nori framework.</p>
+</li>
+<li>
+<p><code>InitializeComponent()</code> — standard WPF: builds the visual tree from <code>MainWindow.xaml</code>.</p>
+</li>
+<li>
+<p><code>WPFHost.Init(this, OnLuxReady)</code> — creates the OpenGL surface and embeds it as <code>mContent.Child</code>.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_onluxready_private">1.2.2. <code>OnLuxReady</code> (private)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">void OnLuxReady()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Callback invoked by Nori once the OpenGL context is active and the first frame can be rendered.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Sets <code>TraceVN.TextColor = Color4.Yellow</code>.</p>
+</li>
+<li>
+<p><code>new SceneManipulator()</code> — installs the built-in mouse handler for 3D pan/zoom/rotate.</p>
+</li>
+<li>
+<p><code>new RobotScene()</code> — creates and initialises the complete robot scene.</p>
+</li>
+<li>
+<p><code>Lux.UIScene = scene</code> — makes the scene the active rendered scene.</p>
+</li>
+<li>
+<p><code>Dispatcher.BeginInvoke) &#8658; scene.CreateUI(mSettings.Children</code> — defers UI population until after the WPF layout pass, ensuring <code>mSettings</code> has its final size.</p>
+</li>
+</ol>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_robotscene_robotscene_cs">1.3. <code>RobotScene</code> (<code>RobotScene.cs</code>)</h3>
+<div class="paragraph">
+<p>Extends <code>Scene3</code> (from Nori.Lux).  The application&#8217;s primary scene.  Owns all robot logic.</p>
+</div>
+<div class="sect3">
+<h4 id="_constructor_robotscene">1.3.1. Constructor — <code>RobotScene()</code></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">RobotScene()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Full sequence described in <a href="part-loading.html">Part Loading</a>.  Summary:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Load mechanism from <code>N:/Wad/FanucX/mechanism.curl</code>.</p>
+</li>
+<li>
+<p>Locate <code>Tip</code> node and joints <code>[S, L, U, R, B, T]</code>.</p>
+</li>
+<li>
+<p>Read <code>JMin</code>/<code>JMax</code> from each joint into <code>mMin[]</code> / <code>mMax[]</code>.</p>
+</li>
+<li>
+<p>Construct <code>RBRSolver</code> with link lengths and joint limits.</p>
+</li>
+<li>
+<p>Build a 200 × 200 × 200 mm box obstacle (mesh + OBB tree + visual node).</p>
+</li>
+<li>
+<p>Build OBB trees for every robot link with a collision mesh.</p>
+</li>
+<li>
+<p>Set up gripper transform node.</p>
+</li>
+<li>
+<p>Set home pose and compute first IK solution.</p>
+</li>
+<li>
+<p>Create 500 ms <code>DispatcherTimer</code> for script playback.</p>
+</li>
+<li>
+<p>Create <code>InfoVN</code> and <code>TcpVN</code> overlay nodes.</p>
+</li>
+<li>
+<p>Assign <code>Root</code> scene graph.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_createuiuielementcollection_ui_public">1.3.2. <code>CreateUI(UIElementCollection ui)</code> (public)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">public void CreateUI(UIElementCollection ui)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Programmatically builds the settings panel.  Called once after the WPF layout pass.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Clears <code>ui</code> first.</p>
+</li>
+<li>
+<p><strong>Forward Kinematics section</strong>: iterates <code>mMech.EnumTree()</code>, creates one labelled <code>Slider</code> per joint.  Slider callback sets <code>m.JValue</code> and calls <code>OnFK()</code>.</p>
+</li>
+<li>
+<p><strong>Inverse Kinematics section</strong>: creates sliders for X, Y, Z, Rx, Ry, Rz.  Special case: <code>Rx</code> slider starts at −90 (tool pointing up).  Each callback updates the corresponding field and calls <code>ComputeIK()</code>.</p>
+</li>
+<li>
+<p><strong>Stances section</strong>: adds <code>mStances</code> (a <code>ListBox</code>).  <code>SelectionChanged</code> updates <code>mSelStance</code> and calls <code>ComputeIK()</code>.</p>
+</li>
+<li>
+<p><strong>Obstacle section</strong>: sliders for BX, BY, BZ.  Callbacks call <code>UpdateBox()</code>.</p>
+</li>
+<li>
+<p><strong>Script section</strong>: <code>TextBox</code> for path, row of <code>Button</code> (Load, Play/Stop).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<div class="title">Local helper: <code>AddSection(string text)</code></div>
+<p>Creates a bold, light-steel-blue <code>TextBlock</code> as a visual separator.</p>
+</div>
+<div class="paragraph">
+<div class="title">Local helper: <code>AddSlider(string label, double min, double max, double value, Action&lt;double&gt; setter)</code></div>
+<p>Creates a horizontal <code>StackPanel</code> with a right-aligned 22 pt <code>TextBlock</code> label and a <code>Slider</code>.  The slider fires <code>setter(newValue)</code> when changed, guarded by <code>!mSyncingUI</code>.  Stores the <code>Slider</code> in <code>mSliders[label]</code>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_detached_public_override">1.3.3. <code>Detached()</code> (public override)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">public override void Detached()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Stops the playback timer when the scene is removed from the renderer.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_pickedobject_obj_public_override">1.3.4. <code>Picked(object obj)</code> (public override)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">public override void Picked(object obj)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Called by the Lux pick system when the user clicks in the viewport.  If the clicked object is <code>mBoxMesh</code>, calls <code>SnapToFace(Lux.PickPos)</code>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_snaptofacepoint3_hit_private">1.3.5. <code>SnapToFace(Point3 hit)</code> (private)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">void SnapToFace(Point3 hit)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Determines which face of the box was clicked by comparing the magnitude of the displacement from the box centre along each axis.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Identifies dominant axis → sets <code>(mRx, mRy, mRz)</code> to the corresponding face-normal orientation.</p>
+</li>
+<li>
+<p>Sets <code>(mX, mY, mZ)</code> to the click point offset from home.</p>
+</li>
+<li>
+<p>Calls <code>ComputeIK()</code> then <code>SyncIKSliders()</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_computeik_private">1.3.6. <code>ComputeIK()</code> (private)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">void ComputeIK()</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Sets <code>mComputingIK = true</code> to prevent re-entrant stance selection.</p>
+</li>
+<li>
+<p>Builds a <code>CoordSystem</code> from the Euler angles <code>(mRx, mRy, mRz)</code> applied in X → Y → Z order.</p>
+</li>
+<li>
+<p>Computes the TCP point as <code>mHome.Org + Vector3(mX, mY, mZ)</code>, then offsets 50 mm along the approach axis (<code>cs.VecZ * 50</code>) to account for tool length.</p>
+</li>
+<li>
+<p>Clears and repopulates <code>mStances.Items</code> (8 entries, one per IK branch).</p>
+</li>
+<li>
+<p>Calls <code>mSolver.ComputeStances(mCS.Org, mCS.VecZ, mCS.VecX)</code>.</p>
+</li>
+<li>
+<p>For the selected stance, sets <code>mJoints[i].JValue</code> for all six joints.</p>
+</li>
+<li>
+<p>Updates <code>mGripper.Xfm = mTip.Xfm</code>.</p>
+</li>
+<li>
+<p>Calls <code>CheckCollisions()</code>.</p>
+</li>
+<li>
+<p>Sets <code>mComputingIK = false</code>.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_onfk_private">1.3.7. <code>OnFK()</code> (private)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">void OnFK()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Called after any FK slider change.  Updates the gripper transform and checks collisions.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_synciksliders_private">1.3.8. <code>SyncIKSliders()</code> (private)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">void SyncIKSliders()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Sets the IK sliders to the current <code>mX/mY/mZ/mRx/mRy/mRz</code> values while suppressing the <code>ValueChanged</code> callbacks via <code>mSyncingUI</code>.  Clamps values to the slider range.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_boxworldxfm_private_property">1.3.9. <code>BoxWorldXfm</code> (private property)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">Matrix3 BoxWorldXfm =&gt; Matrix3.Translation(mBX, mBY, mBZ)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Computes a pure translation matrix positioning the box in world space.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_updatebox_private">1.3.10. <code>UpdateBox()</code> (private)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">void UpdateBox()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Applies the new box world transform to <code>mBoxXfm.Xfm</code> and calls <code>CheckCollisions()</code>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_checkcollisions_private">1.3.11. <code>CheckCollisions()</code> (private)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">void CheckCollisions()</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Computes world-space box OBB: <code>mBoxOBB.With(BoxWorldXfm)</code>.</p>
+</li>
+<li>
+<p>Borrows an <code>OBBCollider</code> from the pool.</p>
+</li>
+<li>
+<p>For each <code>(m, linkOBB)</code> pair in <code>mLinkOBBs</code>:</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>Computes world-space link OBB: <code>linkOBB.With(m.Xfm)</code>.</p>
+</li>
+<li>
+<p>Calls <code>bc.Check(worldLinkOBB, worldBoxOBB)</code>.</p>
+</li>
+<li>
+<p>Sets <code>m.IsColliding = hit</code>.</p>
+</li>
+<li>
+<p>Tracks <code>anyHit</code>.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Sets <code>mBoxVN.Color = anyHit ? Color4.Red : Color4.Blue</code>.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_loadscriptstring_path_private">1.3.12. <code>LoadScript(string path)</code> (private)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">void LoadScript(string path)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Reads the waypoint file line by line.  Skips blank lines and <code>#</code> comments.  Splits each remaining line on whitespace, parses six doubles using <code>InvariantCulture</code>, and appends a named-tuple <code>(X, Y, Z, Rx, Ry, Rz)</code> to <code>mScript</code>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_toggleplay_private">1.3.13. <code>TogglePlay()</code> (private)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">void TogglePlay()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the timer is running, stops it and resets the button label to "Play".  If not running, resets <code>mScriptIdx</code> to 0, starts the timer, and labels the button "Stop".</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_tickscript_private">1.3.14. <code>TickScript()</code> (private)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">void TickScript()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Called by <code>mPlayTimer</code> every 500 ms.  Reads the next waypoint from <code>mScript</code>, assigns it to the six IK fields, and calls <code>ComputeIK()</code>.  Stops the timer when the script is exhausted.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_mech_public_property">1.3.15. <code>Mech</code> (public property)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">public Mechanism Mech =&gt; mMech;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Exposes the root mechanism node to overlay VNodes.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_tip_public_property">1.3.16. <code>Tip</code> (public property)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">public Mechanism Tip =&gt; mTip;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Exposes the TCP (end-effector) mechanism node.  Used by <code>TcpVN.Draw()</code> to obtain the current TCP world transform.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_infodata_public_property">1.3.17. <code>InfoData</code> (public property)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">public (double X, double Y, double Z, double Rx, double Ry, double Rz,
+        Mechanism[] Joints, Point3 Org) InfoData</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Packages the six IK parameters, the joint array, and the home origin into a single named-tuple.  <code>InfoVN.Draw()</code> reads this each frame.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_private_fields">1.3.18. Private Fields</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;">
+<col style="width: 28.5714%;">
+<col style="width: 42.8572%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Field</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mHome</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CoordSystem</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fixed home frame: origin <code>(1166, 0, 596)</code>, X = XAxis, Y = YAxis.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mCS</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CoordSystem</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Current target TCP coordinate system (updated by ComputeIK).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mMin</code>, <code>mMax</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>double[6]</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Per-joint angle limits read from mechanism.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mSolver</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RBRSolver</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Closed-form IK solver for the FANUC X arm.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mMech</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mechanism</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Root of the kinematic tree.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mTip</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mechanism</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">End-effector node (<code>"Tip"</code>).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mJoints</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mechanism[6]</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Joints S, L, U, R, B, T in order.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mGripper</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>XfmVN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Transform node that follows the TCP.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mInfoVN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>InfoVN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Text overlay visual node.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mTcpVN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>TcpVN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TCP frame visual node.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mBoxMesh</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mesh3</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">200³ mm extruded box mesh.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mBoxOBB</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>OBBTree</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OBB tree of the box, in local space.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mBoxVN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mesh3VN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Visual node rendering the box (Glass shading, color switches).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mBoxXfm</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>XfmVN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Transform node positioning the box in world space.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mLinkOBBs</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Dictionary&lt;Mechanism, OBBTree&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Per-link OBB trees in local space.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mBX</code>, <code>mBY</code>, <code>mBZ</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>double</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Obstacle box world position (mm).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mX</code>, <code>mY</code>, <code>mZ</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>double</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Current IK position offset from home (mm).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mRx</code>, <code>mRy</code>, <code>mRz</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>double</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Current IK orientation (degrees).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mSyncingUI</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bool</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Guard flag preventing recursive slider callbacks.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mComputingIK</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bool</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Guard flag preventing stance ListBox from re-triggering IK.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mSelStance</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>int</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Currently selected IK stance index (0–7).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mStances</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ListBox</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shows available/unavailable stances.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mSliders</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Dictionary&lt;string, Slider&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Slider lookup by label for <code>SyncIKSliders</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mScript</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>List&lt;(double X,Y,Z,Rx,Ry,Rz)&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Loaded waypoints.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mScriptIdx</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>int</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Current playback position in <code>mScript</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mPlayTimer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DispatcherTimer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">500 ms step timer for script playback.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mPlayBtn</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Button?</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Reference to Play/Stop button for label toggling.</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_tcpvn_robotscene_cs">1.4. <code>TcpVN</code> (<code>RobotScene.cs</code>)</h3>
+<div class="paragraph">
+<p>Extends <code>VNode</code> (Nori.Lux).  <code>Streaming = true</code> — <code>Draw()</code> executes every frame.</p>
+</div>
+<div class="sect3">
+<h4 id="_constructor_tcpvnrobotscene_scene">1.4.1. Constructor — <code>TcpVN(RobotScene scene)</code></h4>
+<div class="paragraph">
+<p>Stores the scene reference.  Sets <code>Streaming = true</code>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_setattributes_public_override">1.4.2. <code>SetAttributes()</code> (public override)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">public override void SetAttributes()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Sets <code>Lux.ZLevel = 70</code> — renders on top of most scene geometry.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_draw_public_override">1.4.3. <code>Draw()</code> (public override)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">public override void Draw()</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Obtains the current TCP frame: <code>fcs = CoordSystem.World * scene.Tip.Xfm</code>.</p>
+</li>
+<li>
+<p>Computes the TCP tip position: <code>tcp = fcs.Org - fcs.VecZ * 50</code> (back-projects 50 mm tool offset).</p>
+</li>
+<li>
+<p>Calls <code>DrawArrow(tcp, fcs.VecX, Red)</code>, <code>DrawArrow(tcp, fcs.VecY, Green)</code>, <code>DrawArrow(tcp, fcs.VecZ, Blue)</code>.</p>
+</li>
+<li>
+<p>Draws a 24-segment white ring of radius 10 mm in the TCP XY plane using <code>Lux.Lines(ring.AsSpan())</code>.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_drawarrowpoint3_from_vector3_dir_color4_color_private">1.4.4. <code>DrawArrow(Point3 from, Vector3 dir, Color4 color)</code> (private)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">void DrawArrow(Point3 from, Vector3 dir, Color4 color)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Draws a simple 3D arrow with a line body and two "fins" forming the head.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Shaft length <code>L = 90 mm</code>.  Head length <code>HL = 15 mm</code>.  Head half-width <code>HW = 7 mm</code>.</p>
+</li>
+<li>
+<p>Computes a perpendicular <code>side</code> vector (avoids the degenerate case when <code>dir ≈ XAxis</code>).</p>
+</li>
+<li>
+<p>Emits six <code>Vec3F</code> vertices: shaft start → tip, two head fins.</p>
+</li>
+</ul>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_infovn_robotscene_cs">1.5. <code>InfoVN</code> (<code>RobotScene.cs</code>)</h3>
+<div class="paragraph">
+<p>Extends <code>VNode</code> (Nori.Lux).  <code>Streaming = true</code>.</p>
+</div>
+<div class="sect3">
+<h4 id="_constructor_infovnrobotscene_scene">1.5.1. Constructor — <code>InfoVN(RobotScene scene)</code></h4>
+<div class="paragraph">
+<p>Stores scene reference, sets <code>Streaming = true</code>.  Constructs a <code>TypeFace</code> from the embedded <code>RobotoMono-Regular.ttf</code> at 14 pt.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_setattributes_public_override_2">1.5.2. <code>SetAttributes()</code> (public override)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">public override void SetAttributes()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Sets <code>Lux.Color = White</code>, assigns the TypeFace, sets <code>Lux.ZLevel = 90</code> (renders on top of everything including TcpVN).</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_draw_public_override_2">1.5.3. <code>Draw()</code> (public override)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">public override void Draw()</code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Guards against null scene.</p>
+</li>
+<li>
+<p>Reads <code>InfoData</code> from the scene.</p>
+</li>
+<li>
+<p>Computes the starting Y position: 4 lines from the bottom of the viewport: <code>(int)sc.Rect.Height - lh * 4 - 8</code>.</p>
+</li>
+<li>
+<p>Renders four text lines via <code>Lux.Text(s, new Vec2S(px, py))</code>, advancing <code>py</code> by <code>lh</code> each time:</p>
+<div class="listingblock">
+<div class="content">
+<pre>Line 1: X=&lt;absX&gt;  Y=&lt;absY&gt;  Z=&lt;absZ&gt;  mm
+Line 2: Rx=&lt;rx&gt;°  Ry=&lt;ry&gt;°  Rz=&lt;rz&gt;°
+Line 3: S=&lt;s&gt;°  L=&lt;l&gt;°  U=&lt;u&gt;°
+Line 4: R=&lt;r&gt;°  B=&lt;b&gt;°  T=&lt;t&gt;°</pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+<hr>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_nori_framework_types_used_by_probot">2. Nori Framework Types Used by PRobot</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_mechanism_ncoresimmechanism_cs">2.1. <code>Mechanism</code> (<code>N:\Core\Sim\Mechanism.cs</code>)</h3>
+<div class="paragraph">
+<p>Represents one node in a kinematic tree.  Nodes form a parent-child hierarchy through <code>AddChild()</code>.  Each node optionally has a joint, visual mesh, and collision mesh.</p>
+</div>
+<div class="sect3">
+<h4 id="_mechanism_loadstring_curlfile_static">2.1.1. <code>Mechanism.Load(string curlFile)</code> (static)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">static Mechanism Load(string curlFile)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Parses a CURL file and returns the root <code>Mechanism</code>.  The file embeds all child nodes, joint definitions, mesh file references, and link parameters.  For PRobot: <code>"N:/Wad/FanucX/mechanism.curl"</code>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_findchildstring_name_mechanism">2.1.2. <code>FindChild(string name)</code> → <code>Mechanism?</code></h4>
+<div class="paragraph">
+<p>Recursive search for a named descendant.  Returns <code>null</code> if not found.  PRobot uses <code>!</code> (null-forgiving) to assert presence of <code>"Tip"</code>, <code>"S"</code>, <code>"L"</code>, <code>"U"</code>, <code>"R"</code>, <code>"B"</code>, <code>"T"</code>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_enumtree_ienumerablemechanism">2.1.3. <code>EnumTree()</code> → <code>IEnumerable&lt;Mechanism&gt;</code></h4>
+<div class="paragraph">
+<p>Breadth- or depth-first enumeration of the node and all descendants.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_properties">2.1.4. Properties</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;">
+<col style="width: 28.5714%;">
+<col style="width: 42.8572%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Joint</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>EJoint</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>None</code>, <code>Translate</code>, or <code>Rotate</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JMin</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>double</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Minimum joint value (degrees for Rotate joints).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JMax</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>double</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maximum joint value.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JValue</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>double</code> (get/set)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Current joint angle.  Setting propagates the kinematic update through children.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JVector</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Vector3</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Axis of rotation or translation in local space.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Xfm</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Matrix3</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Current world transform of this node, recomputed after any <code>JValue</code> change.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mesh</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mesh3?</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Visual mesh, if any.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CMesh</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mesh3?</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Collision mesh.  May differ from <code>Mesh</code> (lower resolution).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Color</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Color4</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Base render colour.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>IsColliding</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bool</code> (get/set)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set by <code>CheckCollisions()</code>.  <code>MechanismVN</code> uses it to highlight colliding links.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>IsVisible</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bool</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Whether this node is rendered.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>string</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Node name as defined in the CURL file.</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_rbrsolver_ncoresimrbrsolver_cs">2.2. <code>RBRSolver</code> (<code>N:\Core\Sim\RBRSolver.cs</code>)</h3>
+<div class="paragraph">
+<p>Closed-form inverse kinematics solver for 6-DOF roll-bend-roll wrist robots.  Computes all eight algebraic solution branches in one call.</p>
+</div>
+<div class="sect3">
+<h4 id="_constructor">2.2.1. Constructor</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">RBRSolver(double a12, double a23, double a34,
+          double s2, double s4, double s6,
+          double[] min, double[] max)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>DH-style parameters for the FANUC X arm: <code>a12=150, a23=770, a34=0, s2=0, s4=1016, s6=175</code>.  <code>min</code>/<code>max</code> are copied internally and used to classify solutions as reachable.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_computestancespoint3_fptool_vector3_vecz_vector3_vecx">2.2.2. <code>ComputeStances(Point3 Fptool, Vector3 vecZ, Vector3 vecX)</code></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">void ComputeStances(Point3 Fptool, Vector3 vecZ, Vector3 vecX)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Runs the full IK analysis.  <code>Fptool</code> is the desired TCP origin in world space, <code>vecZ</code> is the approach direction, <code>vecX</code> is the orientation reference.  Fills <code>Solutions[0..7]</code>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_solutions_ireadonlylistsoln">2.2.3. <code>Solutions</code> → <code>IReadOnlyList&lt;Soln&gt;</code></h4>
+<div class="paragraph">
+<p>Eight solution records.  Index matches the stance number shown in the UI (0-based; UI shows 1-based).</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_soln_nested_class">2.2.4. <code>Soln</code> (nested class)</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;">
+<col style="width: 28.5714%;">
+<col style="width: 42.8572%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Member</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>OK</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bool</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">True if this solution is within all joint limits.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GetJointAngle(int i)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>double</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Joint angle for axis <code>i</code> (0=S … 5=T), in degrees.</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_obbtree_ncoresimobbtree_cs">2.3. <code>OBBTree</code> (<code>N:\Core\Sim\OBBTree.cs</code>)</h3>
+<div class="paragraph">
+<p>An Oriented Bounding Box hierarchy for fast spatial queries.  Immutable once built.</p>
+</div>
+<div class="sect3">
+<h4 id="_obbtree_frommesh3_mesh_static">2.3.1. <code>OBBTree.From(Mesh3 mesh)</code> (static)</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">static OBBTree From(Mesh3 mesh)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Builds an OBB tree from a triangle mesh using recursive median-cut subdivision.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_withmatrix3_xfm_obbtree">2.3.2. <code>With(Matrix3 xfm)</code> → <code>OBBTree</code></h4>
+<div class="paragraph">
+<p>Returns a new <code>OBBTree</code> with all bounding boxes transformed by <code>xfm</code>.  Used to bring local-space trees into world space without modifying the original.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_empty_static_field">2.3.3. <code>Empty</code> (static field)</h4>
+<div class="paragraph">
+<p>An empty OBBTree singleton used as a null-safe placeholder.</p>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_obbcollider_ncoresimobbcollider_cs">2.4. <code>OBBCollider</code> (<code>N:\Core\Sim\OBBCollider.cs</code>)</h3>
+<div class="paragraph">
+<p>Pooled collision checker.  Uses the Separating Axis Theorem to test pairs of OBB trees.</p>
+</div>
+<div class="sect3">
+<h4 id="_obbcollider_borrow_obbcollider">2.4.1. <code>OBBCollider.Borrow()</code> → <code>OBBCollider</code></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">static OBBCollider Borrow()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Returns a pooled instance (implements <code>IBorrowable&lt;OBBCollider&gt;</code>).  Must be used in a <code>using</code> block or disposed to return to pool.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_checkobbtree_a_obbtree_b_bool_onecrash_false_bool">2.4.2. <code>Check(OBBTree a, OBBTree b, bool oneCrash = false)</code> → <code>bool</code></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">bool Check(OBBTree a, OBBTree b, bool oneCrash = false)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Returns <code>true</code> if any triangle in tree <code>a</code> intersects any triangle in tree <code>b</code>.  Hierarchical traversal prunes with OBB vs OBB tests before reaching triangle level.</p>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_scene3_nluxscenescene_cs">2.5. <code>Scene3</code> (<code>N:\Lux\Scene\Scene.cs</code>)</h3>
+<div class="paragraph">
+<p>Base class for <code>RobotScene</code>.  Provides a 3D turntable camera and scene-graph hosting.</p>
+</div>
+<div class="sect3">
+<h4 id="_properties_2">2.5.1. Properties</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;">
+<col style="width: 28.5714%;">
+<col style="width: 42.8572%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Root</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>VNode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Root of the scene graph.  Set in <code>RobotScene</code> constructor.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BgrdColor</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Color4</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Background clear colour.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Bound</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Bound3</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Used by <code>ZoomExtents()</code> and camera auto-fit.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Rect</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RectS</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Current viewport pixel rectangle (read-only).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_overridable_methods">2.5.2. Overridable Methods</h4>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>Detached()</code></dt>
+<dd>
+<p>Called when the scene is no longer the active <code>Lux.UIScene</code>.  <code>RobotScene</code> overrides this to stop the playback timer.</p>
+</dd>
+<dt class="hdlist1"><code>Picked(object obj)</code></dt>
+<dd>
+<p>Called with the domain object of the clicked VNode.  <code>RobotScene</code> overrides to detect clicks on the box mesh.</p>
+</dd>
+</dl>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vnode_nluxvnode_cs">2.6. <code>VNode</code> (<code>N:\Lux\VNode.cs</code>)</h3>
+<div class="paragraph">
+<p>Abstract base class for all visual nodes.  Holds geometry batches and attribute state.</p>
+</div>
+<div class="sect3">
+<h4 id="_key_properties">2.6.1. Key Properties</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;">
+<col style="width: 28.5714%;">
+<col style="width: 42.8572%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Streaming</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bool</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If <code>true</code>, <code>Draw()</code> is called every frame instead of being cached.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NoPicking</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bool</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exclude from pick-buffer rendering.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Obj</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>object?</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Domain object associated with this visual node.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_overridable_methods_2">2.6.2. Overridable Methods</h4>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>Draw()</code></dt>
+<dd>
+<p>Emit geometry via the <code>Lux</code> static API (<code>Lux.Lines</code>, <code>Lux.Text</code>, etc.).</p>
+</dd>
+<dt class="hdlist1"><code>SetAttributes()</code></dt>
+<dd>
+<p>Set Lux render state (<code>Lux.Color</code>, <code>Lux.ZLevel</code>, etc.) before <code>Draw()</code>.</p>
+</dd>
+<dt class="hdlist1"><code>GetChild(int n)</code> → <code>VNode?</code></dt>
+<dd>
+<p>Enumerate children (used by scene traversal).</p>
+</dd>
+</dl>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_groupvn_nluxvnodes_cs">2.7. <code>GroupVN</code> (<code>N:\Lux\VNodes.cs</code>)</h3>
+<div class="paragraph">
+<p>Concrete <code>VNode</code> that holds a list of child VNodes.  Used as the root container.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">new GroupVN([child1, child2, …])</code></pre>
+</div>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_xfmvn_nluxvnodes_cs">2.8. <code>XfmVN</code> (<code>N:\Lux\VNodes.cs</code>)</h3>
+<div class="paragraph">
+<p><code>VNode</code> that applies a <code>Matrix3</code> transform to its child subtree.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;">
+<col style="width: 28.5714%;">
+<col style="width: 42.8572%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Xfm</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Matrix3</code> (get/set)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The transform applied to all children.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">new XfmVN(Matrix3.Translation(tx, ty, tz), childVNode)</code></pre>
+</div>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_mesh3vn_nluxvnodes_cs">2.9. <code>Mesh3VN</code> (<code>N:\Lux\VNodes.cs</code>)</h3>
+<div class="paragraph">
+<p><code>VNode</code> that renders a <code>Mesh3</code> object.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;">
+<col style="width: 28.5714%;">
+<col style="width: 42.8572%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Mode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>EShadeMode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shading mode — e.g., <code>Glass</code>, <code>Phong</code>, <code>Flat</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Color</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Color4</code> (get/set)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Override colour.  Changing this triggers a redraw.</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_mechanismvn_nluxvnodes_cs">2.10. <code>MechanismVN</code> (<code>N:\Lux\VNodes.cs</code>)</h3>
+<div class="paragraph">
+<p><code>VNode</code> that renders an entire <code>Mechanism</code> tree.  Automatically reflects joint angle changes and <code>IsColliding</code> flags (colliding links are typically highlighted in a different colour).</p>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_tracevn_nluxvnodes_cs">2.11. <code>TraceVN</code> (<code>N:\Lux\VNodes.cs</code>)</h3>
+<div class="paragraph">
+<p>Singleton <code>VNode</code> for debug text output.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;">
+<col style="width: 28.5714%;">
+<col style="width: 42.8572%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Member</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>TraceVN.It</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>VNode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The singleton instance to add to the scene graph.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>TraceVN.TextColor</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Color4</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Colour of printed text.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>TraceVN.Print(string)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>void</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Appends a line to the overlay.  Assigned to <code>Lib.Tracer</code>.</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_lux_nluxlux_cs">2.12. <code>Lux</code> (<code>N:\Lux\Lux.cs</code>)</h3>
+<div class="paragraph">
+<p>Static class — the primary API surface of the Nori rendering engine.</p>
+</div>
+<div class="sect3">
+<h4 id="_scene_management">2.12.1. Scene Management</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Member</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Lux.UIScene</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get/set the currently rendered scene.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Lux.PickPos</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Point3</code> — world-space position of the last pick ray hit.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Lux.PanelSize</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Current viewport size in pixels.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_drawing_state">2.12.2. Drawing State</h4>
+<div class="paragraph">
+<p>All drawing state is set inside <code>VNode.SetAttributes()</code> and persists until the next node&#8217;s <code>SetAttributes()</code>.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;">
+<col style="width: 28.5714%;">
+<col style="width: 42.8572%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Lux.Color</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Color4</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Current draw colour.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Lux.LineWidth</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>float</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Line width in pixels.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Lux.PointSize</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>float</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Point size in pixels.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Lux.TypeFace</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>TypeFace</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Current font for text rendering.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Lux.ZLevel</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>int</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Render depth layer (higher = closer to viewer).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Lux.Xfm</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Matrix3</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Current local-to-world transform.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_drawing_commands">2.12.3. Drawing Commands</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Method</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Lux.Lines(ReadOnlySpan&lt;Vec3F&gt; pts)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Draws line segments; pts are taken in pairs.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Lux.Text(string s, Vec2S pos)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Draws text at pixel position using <code>Lux.TypeFace</code>.</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_wpfhost_nhostwpfhost_cs">2.13. <code>WPFHost</code> (<code>N:\Host\WPF\Host.cs</code>)</h3>
+<div class="paragraph">
+<p>Static class bridging WPF and the Nori/OpenGL renderer.</p>
+</div>
+<div class="sect3">
+<h4 id="_wpfhost_initwindow_main_action_onready_uielement">2.13.1. <code>WPFHost.Init(Window main, Action onReady)</code> → <code>UIElement</code></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">static UIElement Init(Window main, Action onReady)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Creates the OpenGL render surface (<code>Panel</code>), wires up WPF input (mouse, keyboard), and invokes <code>onReady</code> once the GL context is ready.  Returns a <code>UIElement</code> that can be inserted into the WPF visual tree as the viewport widget.</p>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_coordsystem_ncoregeom">2.14. <code>CoordSystem</code> (<code>N:\Core\Geom\</code>)</h3>
+<div class="paragraph">
+<p>A right-handed coordinate frame: origin <code>Point3</code>, three orthonormal axes.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;">
+<col style="width: 28.5714%;">
+<col style="width: 42.8572%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Member</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CoordSystem.World</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CoordSystem</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The identity frame (world space).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Org</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Point3</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Origin of the frame.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>VecX</code>, <code>VecY</code>, <code>VecZ</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Vector3</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Orthonormal axes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>* Matrix3</code> (operator)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CoordSystem</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Applies a matrix transform to the frame.</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_matrix3_ncoregeommatrix_cs">2.15. <code>Matrix3</code> (<code>N:\Core\Geom\Matrix.cs</code>)</h3>
+<div class="paragraph">
+<p>3×3 rotation/scale matrix plus a translation vector.  Represents full 3D affine transforms.</p>
+</div>
+<div class="sect3">
+<h4 id="_factory_methods">2.15.1. Factory Methods</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Method</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Matrix3.Translation(dx, dy, dz)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pure translation.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Matrix3.Translation(Point3 p)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Translation to a point.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Matrix3.Rotation(EAxis axis, double angle)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rotation around a principal axis.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Matrix3.Rotation(Vector3 axis, double angle)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rotation around an arbitrary axis.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Matrix3.Scaling(double s)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Uniform scale.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Matrix3.Identity</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Identity (no transform).</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_color4_ncorebasestructs_cs">2.16. <code>Color4</code> (<code>N:\Core\Base\Structs.cs</code>)</h3>
+<div class="paragraph">
+<p>32-bit RGBA colour.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Member</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Color4.Red</code>, <code>.Blue</code>, <code>.Green</code>, <code>.White</code>, <code>.Yellow</code>, <code>.Gray(byte v)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Named constructors.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>R, G, B, A</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Byte components.</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_mesh3_ncoremeshmesh_cs">2.17. <code>Mesh3</code> (<code>N:\Core\Mesh\Mesh.cs</code>)</h3>
+<div class="paragraph">
+<p>An immutable, GPU-ready triangle mesh.</p>
+</div>
+<div class="sect3">
+<h4 id="_mesh3_extrudepoly_profiles_double_height_matrix3_baseplane_etess_tess_static">2.17.1. <code>Mesh3.Extrude(Poly[] profiles, double height, Matrix3 basePlane, ETess tess)</code> (static)</h4>
+<div class="paragraph">
+<p>Extrudes one or more 2D profile polygons to produce a closed solid mesh.  Used to create the obstacle box:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">Mesh3.Extrude([boxPoly], 200, Matrix3.Translation(0, 0, -100), ETess.Medium)</code></pre>
+</div>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_poly_ncoregeompoly_cs">2.18. <code>Poly</code> (<code>N:\Core\Geom\Poly.cs</code>)</h3>
+<div class="paragraph">
+<p>A 2D polyline composed of line segments and circular arcs.</p>
+</div>
+<div class="sect3">
+<h4 id="_poly_rectangledouble_x1_double_y1_double_x2_double_y2_static">2.18.1. <code>Poly.Rectangle(double x1, double y1, double x2, double y2)</code> (static)</h4>
+<div class="paragraph">
+<p>Creates a closed rectangular polygon.  PRobot uses <code>Poly.Rectangle(-100, -100, 100, 100)</code> for the 200 × 200 base of the box.</p>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_fasttess2d_ncoregeomtess_cs">2.19. <code>FastTess2D</code> (<code>N:\Core\Geom\Tess.cs</code>)</h3>
+<div class="paragraph">
+<p>Pooled 2D polygon tessellator.  <code>Lib.Tessellate = FastTess2D.Process</code> registers it as the default tessellation back-end for <code>Mesh3.Extrude</code>.</p>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_typeface_nluxfonttypeface_cs">2.20. <code>TypeFace</code> (<code>N:\Lux\Font\TypeFace.cs</code>)</h3>
+<div class="paragraph">
+<p>FreeType-backed font wrapper.</p>
+</div>
+<div class="sect3">
+<h4 id="_constructor_2">2.20.1. Constructor</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-csharp hljs" data-lang="csharp">TypeFace(byte[] fontData, int pixelSize)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Loads a TTF/OTF from a byte array.  PRobot uses <code>Lib.ReadBytes("nori:GL/Fonts/RobotoMono-Regular.ttf")</code> to load from the embedded Nori resource.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_properties_3">2.20.2. Properties</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 28.5714%;">
+<col style="width: 28.5714%;">
+<col style="width: 42.8572%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LineHeight</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>int</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pixel height of one text line (advance + leading).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PixelSize</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>int</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Font size in pixels as specified at construction.</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_lib_ncorebaselib_cs">2.21. <code>Lib</code> (<code>N:\Core\Base\Lib.cs</code>)</h3>
+<div class="paragraph">
+<p>Central framework utility class.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Member</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Lib.Init()</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Must be called before any other Nori API.  Discovers assemblies, initialises streams and singletons.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Lib.Tessellate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delegate: <code>Action&lt;…&gt;</code>.  Assign <code>FastTess2D.Process</code> to enable mesh extrusion.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Lib.Tracer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delegate: <code>Action&lt;string&gt;</code>.  Assign <code>TraceVN.Print</code> to route <code>Lib.Trace()</code> to the viewport overlay.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Lib.Trace(string)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Emits a debug message through <code>Lib.Tracer</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Lib.ReadBytes(string uri)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Reads a resource by URI.  Supports <code>nori:</code> virtual scheme for embedded resources.</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_enumerations">3. Enumerations</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_ejoint_ncorebaseenum_cs">3.1. <code>EJoint</code> (<code>N:\Core\Base\Enum.cs</code>)</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Value</th>
+<th class="tableblock halign-left valign-top">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>None</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">This mechanism node has no joint (rigid link).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Translate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Prismatic joint — <code>JValue</code> is a linear displacement.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Rotate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Revolute joint — <code>JValue</code> is an angle in degrees.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_etess_ncorebaseenum_cs">3.2. <code>ETess</code> (<code>N:\Core\Base\Enum.cs</code>)</h3>
+<div class="paragraph">
+<p>Controls arc/curve tessellation tolerance for mesh generation.</p>
+</div>
+<div class="paragraph">
+<p><code>VeryCoarse</code>, <code>Coarse</code>, <code>Medium</code>, <code>Fine</code>, <code>VeryFine</code></p>
+</div>
+<div class="paragraph">
+<p>PRobot uses <code>ETess.Medium</code> for the obstacle box.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_eshademode_nlux">3.3. <code>EShadeMode</code> (<code>N:\Lux\</code>)</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Value</th>
+<th class="tableblock halign-left valign-top">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Glass</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Transparent/translucent rendering.  Used for the obstacle box.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Phong</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Standard Phong shading.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Flat</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Per-face flat shading.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_eaxis_ncorebaseenum_cs">3.4. <code>EAxis</code> (<code>N:\Core\Base\Enum.cs</code>)</h3>
+<div class="paragraph">
+<p><code>X</code>, <code>Y</code>, <code>Z</code> — principal axes used with <code>Matrix3.Rotation</code>.</p>
+</div>
+</div>
+</div>
+</div>
