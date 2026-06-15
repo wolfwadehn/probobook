@@ -43,6 +43,60 @@ function sLoaded () {
    // Setup lunr search
    lunrIndex = lunr.Index.load(indexJSON);
    initSearch();
+
+   injectSidebarToggles();
+}
+
+function injectSidebarToggles() {
+   const nav = document.getElementById('site-nav');
+   const tocHolder = document.getElementById('site-toc-holder');
+
+   if (nav) {
+      const wrap = document.createElement('div');
+      wrap.id = 'nav-toggle-wrap';
+      wrap.className = 'sidebar-toggle-wrap';
+      const btn = document.createElement('button');
+      btn.id = 'nav-toggle-btn';
+      btn.className = 'sidebar-toggle-btn';
+      btn.title = 'Toggle navigation sidebar';
+      btn.innerHTML = '&#9664;'; // ◀
+      btn.onclick = () => toggleSidebar('nav');
+      wrap.appendChild(btn);
+      nav.insertBefore(wrap, nav.firstChild);
+   }
+
+   if (tocHolder) {
+      const wrap = document.createElement('div');
+      wrap.id = 'toc-toggle-wrap';
+      wrap.className = 'sidebar-toggle-wrap';
+      const btn = document.createElement('button');
+      btn.id = 'toc-toggle-btn';
+      btn.className = 'sidebar-toggle-btn';
+      btn.title = 'Toggle table of contents';
+      btn.innerHTML = '&#9654;'; // ▶
+      btn.onclick = () => toggleSidebar('toc');
+      wrap.appendChild(btn);
+      tocHolder.insertBefore(wrap, tocHolder.firstChild);
+   }
+
+   if (localStorage.getItem('nav-collapsed') === 'true') toggleSidebar('nav');
+   if (localStorage.getItem('toc-collapsed') === 'true') toggleSidebar('toc');
+}
+
+function toggleSidebar(which) {
+   if (which === 'nav') {
+      const nav = document.getElementById('site-nav');
+      const btn = document.getElementById('nav-toggle-btn');
+      const collapsed = nav.classList.toggle('nav-collapsed');
+      btn.innerHTML = collapsed ? '&#9654;' : '&#9664;'; // ▶ expand, ◀ collapse
+      localStorage.setItem('nav-collapsed', collapsed);
+   } else {
+      const toc = document.getElementById('site-toc-holder');
+      const btn = document.getElementById('toc-toggle-btn');
+      const collapsed = toc.classList.toggle('toc-collapsed');
+      btn.innerHTML = collapsed ? '&#9664;' : '&#9654;'; // ◀ expand, ▶ collapse
+      localStorage.setItem('toc-collapsed', collapsed);
+   }
 }
 
 function sNavToggle (btn) {
